@@ -22,6 +22,8 @@ package net.minecraftforge.items;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDropper;
 import net.minecraft.block.BlockHopper;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryLargeChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.IHopper;
 import net.minecraft.tileentity.TileEntity;
@@ -33,6 +35,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -97,9 +102,26 @@ public class VanillaInventoryCodeHooks
             IItemHandler itemHandler = destinationResult.getKey();
             Object destination = destinationResult.getValue();
             ItemStack dispensedStack = stack.copy().splitStack(1);
-            ItemStack remainder = putStackInInventoryAllSlots(dropper, destination, itemHandler, dispensedStack);
+            // Akarin Forge - start
+            BlockPos facepos = pos.offset(enumfacing);
+            IInventory iinventory = TileEntityHopper.getInventoryAtPosition(world, (double) facepos.getX(), (double) facepos.getY(), (double) facepos.getZ());
+            
+            CraftItemStack oitemstack = CraftItemStack.asCraftMirror(dispensedStack.copy());
+            org.bukkit.inventory.Inventory destinationInventory;
+            // Have to special case large chests as they work oddly
+            if (iinventory instanceof InventoryLargeChest) {
+                destinationInventory = new CraftInventoryDoubleChest((InventoryLargeChest) iinventory);
+            } else {
+                destinationInventory = iinventory.getOwner().getInventory();
+            }
+            
+            InventoryMoveItemEvent event = new InventoryMoveItemEvent(dropper.getOwner().getInventory(), oitemstack.clone(), destinationInventory, true);
+            world.getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) return false;
+            // Akarin Forge - end
+            ItemStack remainder = putStackInInventoryAllSlots(dropper, destination, itemHandler, CraftItemStack.asNMSCopy(event.getItem())); // Akarin Forge - respect event
 
-            if (remainder.isEmpty())
+            if (event.getItem().equals(oitemstack) && remainder.isEmpty()) // Akarin Forge - respect event
             {
                 remainder = stack.copy();
                 remainder.shrink(1);

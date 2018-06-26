@@ -92,6 +92,41 @@
       "name": "org.apache.maven:maven-artifact:3.5.3",
       "children" : ["sources"],
       "url" : "http://repo.maven.apache.org/maven2"
+    },
+    {
+      "name": "org.xerial:sqlite-jdbc:3.21.0.1",
+      "url" : "https://hub.spigotmc.org/nexus/content/groups/public/",
+      "serverreq":true
+    },
+    {
+      "name": "mysql:mysql-connector-java:5.1.45",
+      "url" : "https://hub.spigotmc.org/nexus/content/groups/public/",
+      "serverreq":true
+    },
+    {
+      "name": "org.bukkit:bukkit:1.12.2-R0.1-SNAPSHOT",
+      "url" : "https://hub.spigotmc.org/nexus/content/groups/public/",
+      "serverreq":true
+    },
+    {
+      "name": "net.md-5:SpecialSource:1.8.4-SNAPSHOT",
+      "url" : "https://hub.spigotmc.org/nexus/content/groups/public/",
+      "serverreq":true
+    },
+    {
+      "name": "commons-lang:commons-lang:2.6",
+      "url" : "https://hub.spigotmc.org/nexus/content/groups/public/",
+      "serverreq":true
+    },
+    {
+      "name": "org.yaml:snakeyaml:1.19",
+      "url" : "https://hub.spigotmc.org/nexus/content/groups/public/",
+      "serverreq":true
+    },
+    {
+      "name": "org.projectlombok:lombok:1.18.0",
+      "url" : "https://hub.spigotmc.org/nexus/content/groups/public/",
+      "serverreq":true
     }
   ]
 }
