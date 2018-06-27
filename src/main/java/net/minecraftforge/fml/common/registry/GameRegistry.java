@@ -48,6 +48,7 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraftforge.common.crafting.CraftingHelper;
@@ -70,6 +71,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import javax.annotation.Nonnull;
+
+import org.bukkit.generator.BlockPopulator;
 
 public class GameRegistry
 {
@@ -161,12 +164,28 @@ public class GameRegistry
         long zSeed = fmlRandom.nextLong() >> 2 + 1L;
         long chunkSeed = (xSeed * chunkX + zSeed * chunkZ) ^ worldSeed;
 
-        for (IWorldGenerator generator : sortedGeneratorList)
+        // CraftBukkit start
+        net.minecraft.block.BlockSand.fallInstantly = true;
+        org.bukkit.World bukkitWorld = world.getWorld();
+        world.populating = true;
+        // Akarin Forge - start
+        List<Object> generators = Lists.newArrayList(bukkitWorld.getPopulators());
+        generators.addAll(sortedGeneratorList); // TODO Add utility method
+        for (Object generator : sortedGeneratorList)
         {
             fmlRandom.setSeed(chunkSeed);
-            generator.generate(fmlRandom, chunkX, chunkZ, world, chunkGenerator, chunkProvider);
+            if (generator instanceof IWorldGenerator) {
+                ((IWorldGenerator) generator).generate(fmlRandom, chunkX, chunkZ, world, chunkGenerator, chunkProvider);
+            } else {
+                ((BlockPopulator) generator).populate(bukkitWorld, fmlRandom, nmsOriginChunk.bukkitChunk);
+            } // Akarin Forge - end
         }
+        world.populating = false;
+        net.minecraft.block.BlockSand.fallInstantly = false;
+        world.getServer().getPluginManager().callEvent(new org.bukkit.event.world.ChunkPopulateEvent(nmsOriginChunk.bukkitChunk));
+        // CraftBukkit end
     }
+    public static Chunk nmsOriginChunk; // Akarin Forge - respect CraftBukkit // TODO Move to our class
 
     private static void computeSortedGeneratorList()
     {

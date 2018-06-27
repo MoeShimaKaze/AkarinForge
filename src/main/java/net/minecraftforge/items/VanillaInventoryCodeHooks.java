@@ -119,9 +119,9 @@ public class VanillaInventoryCodeHooks
             world.getServer().getPluginManager().callEvent(event);
             if (event.isCancelled()) return false;
             // Akarin Forge - end
-            ItemStack remainder = putStackInInventoryAllSlots(dropper, destination, itemHandler, CraftItemStack.asNMSCopy(event.getItem())); // Akarin Forge - respect event
+            ItemStack remainder = putStackInInventoryAllSlots(dropper, destination, itemHandler, CraftItemStack.asNMSCopy(event.getItem())); // Akarin Forge - respect CraftBukkit
 
-            if (event.getItem().equals(oitemstack) && remainder.isEmpty()) // Akarin Forge - respect event
+            if (event.getItem().equals(oitemstack) && remainder.isEmpty()) // Akarin Forge - respect CraftBukkit
             {
                 remainder = stack.copy();
                 remainder.shrink(1);
