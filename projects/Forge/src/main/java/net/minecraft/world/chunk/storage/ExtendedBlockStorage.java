@@ -26,6 +26,22 @@ public class ExtendedBlockStorage
             this.skyLight = new NibbleArray();
         }
     }
+    // CraftBukkit start
+    public ExtendedBlockStorage(int y, boolean flag, char[] blockIds) {
+        this.yBase = y;
+        this.data = new BlockStateContainer();
+        for (int i = 0; i < blockIds.length; i++) {
+            int xx = i & 15;
+            int yy = (i >> 8) & 15;
+            int zz = (i >> 4) & 15;
+            this.data.set(xx, yy, zz, Block.BLOCK_STATE_IDS.getByValue(blockIds[i]));
+        }
+        this.blockLight = new NibbleArray();
+        if (flag) {
+            this.skyLight = new NibbleArray();
+        }
+        recalculateRefCounts();
+    } // CraftBukkit end
 
     public IBlockState get(int x, int y, int z)
     {

@@ -106,7 +106,7 @@ public class ChunkProviderServer implements IChunkProvider
                 {
                 this.id2ChunkMap.put(ChunkPos.asLong(x, z), chunk);
                 chunk.onLoad();
-                chunk.populate(this, this.chunkGenerator);
+                chunk.populate(this, this.chunkGenerator, false); // CraftBukkit
                 }
 
                 loadingChunks.remove(pos);
@@ -129,6 +129,10 @@ public class ChunkProviderServer implements IChunkProvider
         if (runnable != null) runnable.run();
         return chunk;
     }
+    // CraftBukkit start
+    public Chunk getChunkIfLoaded(int x, int z) {
+        return id2ChunkMap.get(ChunkPos.asLong(x, z));
+    } // CraftBukkit end
 
     public Chunk provideChunk(int x, int z)
     {
@@ -154,7 +158,7 @@ public class ChunkProviderServer implements IChunkProvider
 
             this.id2ChunkMap.put(i, chunk);
             chunk.onLoad();
-            chunk.populate(this, this.chunkGenerator);
+            chunk.populate(this, this.chunkGenerator, true); // CraftBukkit
         }
 
         return chunk;
@@ -216,9 +220,11 @@ public class ChunkProviderServer implements IChunkProvider
         int i = 0;
         List<Chunk> list = Lists.newArrayList(this.id2ChunkMap.values());
 
-        for (int j = 0; j < list.size(); ++j)
-        {
-            Chunk chunk = list.get(j);
+        // CraftBukkit start
+        Iterator<Chunk> iterator = this.id2ChunkMap.values().iterator();
+        while (iterator.hasNext()) {
+            Chunk chunk = (Chunk) iterator.next();
+            // CraftBukkit end
 
             if (all)
             {
@@ -266,11 +272,7 @@ public class ChunkProviderServer implements IChunkProvider
 
                     if (chunk != null && chunk.unloadQueued)
                     {
-                        chunk.onUnload();
-                        net.minecraftforge.common.ForgeChunkManager.putDormantChunk(ChunkPos.asLong(chunk.x, chunk.z), chunk);
-                        this.saveChunkData(chunk);
-                        this.saveChunkExtraData(chunk);
-                        this.id2ChunkMap.remove(olong);
+                        if (!unloadChunk(chunk, true)) continue; // CraftBukkit - move unload logic to own method
                         ++i;
                     }
                 }
@@ -283,6 +285,32 @@ public class ChunkProviderServer implements IChunkProvider
 
         return false;
     }
+    // CraftBukkit start
+    public boolean unloadChunk(Chunk chunk, boolean save) {
+        org.bukkit.event.world.ChunkUnloadEvent event = new org.bukkit.event.world.ChunkUnloadEvent(chunk.bukkitChunk, save);
+        this.world.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) return false;
+        save = event.isSaveChunk();
+        // Update neighbor counts
+        for (int x = -2; x < 3; x++) {
+            for (int z = -2; z < 3; z++) {
+                if (x == 0 && z == 0) continue;
+                Chunk neighbor = this.getChunkIfLoaded(chunk.x + x, chunk.z + z);
+                if (neighbor != null) {
+                    neighbor.setNeighborUnloaded(-x, -z);
+                    chunk.setNeighborUnloaded(x, z);
+                }
+            }
+        }
+        net.minecraftforge.common.ForgeChunkManager.putDormantChunk(ChunkPos.asLong(chunk.x, chunk.z), chunk); // Akarin Forge - Moved from unloadChunks above
+        chunk.onUnload(); // Moved from unloadChunks above
+        if (save) {
+            this.saveChunkData(chunk);
+            this.saveChunkExtraData(chunk);
+        }
+        this.id2ChunkMap.remove(chunk.chunkKey);
+        return true;
+    } // CraftBukkit end
 
     public boolean canSave()
     {

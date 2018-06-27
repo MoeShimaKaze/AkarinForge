@@ -173,6 +173,10 @@ public class UserList<K, V extends UserListEntry<K>>
         }
     }
 
+    // CraftBukkit start
+    public Collection<V> getUserValues() {
+        return this.values.values();
+    } // CraftBukkit end
     @SideOnly(Side.SERVER)
     public boolean isEmpty()
     {

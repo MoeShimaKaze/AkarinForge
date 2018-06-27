@@ -531,4 +531,11 @@ public abstract class TileEntity implements net.minecraftforge.common.capabiliti
         register("shulker_box", TileEntityShulkerBox.class);
         register("bed", TileEntityBed.class);
     }
+    // CraftBukkit start - add method
+    public org.bukkit.inventory.InventoryHolder getOwner() {
+        if (world == null) return null;
+        org.bukkit.block.BlockState state = world.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getState();
+        if (state instanceof org.bukkit.inventory.InventoryHolder) return (org.bukkit.inventory.InventoryHolder) state;
+        return null;
+    } // CraftBukkit end
 }

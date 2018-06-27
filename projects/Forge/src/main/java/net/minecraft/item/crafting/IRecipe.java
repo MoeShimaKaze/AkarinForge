@@ -34,4 +34,6 @@ default String getGroup()
     {
         return "";
     }
+    org.bukkit.inventory.Recipe toBukkitRecipe(); // CraftBukkit
+    void setKey(net.minecraft.util.ResourceLocation key); // CraftBukkit
 }
