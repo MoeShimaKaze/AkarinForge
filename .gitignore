@@ -16,8 +16,8 @@
 /.gradle
 
 # occupational hazards
-/projects/
-#/repo/
+#/projects/
+/repo/
 /buildSrc
 
 # Patch rejects

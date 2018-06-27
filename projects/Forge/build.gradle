@@ -1,0 +1,7 @@
+sourceSets {
+    main.java.srcDir 'src/main/start'
+    main.java.srcDir '/D:/AkarinModEdition/MinecraftForge/src/main/java/'
+    main.resources.srcDir '/D:/AkarinModEdition/MinecraftForge/src/main/resources/'
+    test.java.srcDir '/D:/AkarinModEdition/MinecraftForge/src/test/java/'
+    test.resources.srcDir '/D:/AkarinModEdition/MinecraftForge/src/test/resources/'
+}
