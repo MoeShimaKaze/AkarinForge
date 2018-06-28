@@ -10,7 +10,7 @@ echo "[Akarin Forge] Setup Workspace.."
 (
 	echo "[Akarin Forge] Clean cache.."
 	if [ -d "$tempdir" ]; then
-		rm "$tempdir" -r
+		\rm "$tempdir" -rf
 	fi
 	mkdir "$tempdir"
 	
@@ -21,15 +21,18 @@ echo "[Akarin Forge] Setup Workspace.."
 	echo "[Akarin Forge] Setup Forge.."
 	cd "$basedir"
 	gradle setupForge
-	rm "$srcdir/src" -r
+	
+	chmod +x scripts/setupProject.sh
+	./scripts/setupProject.sh
 	
 	echo "[Akarin Forge] Touch sources: cache -> workspace"
+	\rm "$srcdir/src" -rf
 	\cp -rf "$tempdir/src" "$srcdir/"
 	\cp -rf "$tempdir/build.gradle" "$srcdir/build.gradle"
 	
 	echo "[Akarin Forge] Clean cache.."
 	if [ -d "$tempdir" ]; then
-		rm "$tempdir" -r
+		\rm "$tempdir" -rf
 	fi
 	echo "[Akarin Forge] Finished"
 )
