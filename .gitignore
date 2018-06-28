@@ -41,7 +41,6 @@ projects.iws
 Forge Client.launch
 Forge Server.launch
 projects/Clean/
-.git
 
 # Generate during build
 CREDITS-fml.txt

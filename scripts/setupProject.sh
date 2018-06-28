@@ -12,7 +12,7 @@ echo "[Akarin Forge] Setup Project.."
 		\rm "$srcdir/src/main" -rf
 	fi
 	if [ ! -d "$srcdir/src/.git" ]; then
-		git init --separate-git-dir ../../../repo/src.git
+		git init
 		git remote add origin https://github.com/Akarin-project/ForgeBedrock.git
 	fi
 	git pull origin master
