@@ -2,6 +2,7 @@
 bin
 .settings
 .classpath
+.project
 
 #In case people make their workspace in the repo
 /eclipse/
@@ -13,7 +14,7 @@ classes
 
 #gradle
 build
-/.gradle
+.gradle
 
 #occupational hazards
 #/projects/
@@ -35,6 +36,11 @@ changelog.txt
 /history
 .travis.yml
 /patches/
+projects.ipr
+projects.iws
+Forge Client.launch
+Forge Server.launch
+
 # Generate during build
 CREDITS-fml.txt
 LICENSE-new.txt
