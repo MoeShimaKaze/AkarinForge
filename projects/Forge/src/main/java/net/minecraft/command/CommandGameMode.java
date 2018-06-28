@@ -39,6 +39,12 @@ public class CommandGameMode extends CommandBase
             GameType gametype = this.getGameModeFromCommand(sender, args[0]);
             EntityPlayer entityplayer = args.length >= 2 ? getPlayer(server, sender, args[1]) : getCommandSenderAsPlayer(sender);
             entityplayer.setGameType(gametype);
+            // CraftBukkit start - handle event cancelling the change
+            if (entityplayer.interactionManager.getGameType() != gametype) {
+                sender.sendMessage(new net.minecraft.util.text.TextComponentString("Failed to set the gamemode of '" + entityplayer.getName() + "'"));
+                return;
+            }
+            // CraftBukkit end
             ITextComponent itextcomponent = new TextComponentTranslation("gameMode." + gametype.getName(), new Object[0]);
 
             if (sender.getEntityWorld().getGameRules().getBoolean("sendCommandFeedback"))

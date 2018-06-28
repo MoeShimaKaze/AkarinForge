@@ -97,7 +97,7 @@ public abstract class World implements IBlockAccess, net.minecraftforge.common.c
     public final WorldProvider provider;
     protected PathWorldListener pathListener = new PathWorldListener();
     protected List<IWorldEventListener> eventListeners;
-    protected IChunkProvider chunkProvider;
+    public IChunkProvider chunkProvider; // Akarin Forge - public
     protected final ISaveHandler saveHandler;
     protected WorldInfo worldInfo;
     protected boolean findingSpawnPoint;

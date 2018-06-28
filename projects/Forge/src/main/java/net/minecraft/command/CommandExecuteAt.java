@@ -73,12 +73,15 @@ public class CommandExecuteAt extends CommandBase
             }
 
             String s = buildString(args, i);
-            ICommandSender icommandsender = CommandSenderWrapper.create(sender).withEntity(entity, new Vec3d(d0, d1, d2)).withSendCommandFeedback(server.worlds[0].getGameRules().getBoolean("commandBlockOutput"));
+            ICommandSender icommandsender = CommandSenderWrapper.create(sender).withEntity(entity, new Vec3d(d0, d1, d2)).withSendCommandFeedback(server.worlds.get(0).getGameRules().getBoolean("commandBlockOutput")); // CraftBukkit
             ICommandManager icommandmanager = server.getCommandManager();
 
             try
             {
-                int j = icommandmanager.executeCommand(icommandsender, s);
+                // CraftBukkit start
+                org.bukkit.command.CommandSender sender1 = net.minecraft.tileentity.CommandBlockBaseLogic.unwrapSender(sender);
+                int j = net.minecraft.tileentity.CommandBlockBaseLogic.executeCommand(icommandsender, new org.bukkit.craftbukkit.command.ProxiedNativeCommandSender(icommandsender, sender1, entity.getBukkitEntity()), s); 
+                // CraftBukkit end
 
                 if (j < 1)
                 {
@@ -87,6 +90,7 @@ public class CommandExecuteAt extends CommandBase
             }
             catch (Throwable var23)
             {
+                if (var23 instanceof CommandException) throw (CommandException) var23; // CraftBukkit
                 throw new CommandException("commands.execute.failed", new Object[] {s, entity.getName()});
             }
         }

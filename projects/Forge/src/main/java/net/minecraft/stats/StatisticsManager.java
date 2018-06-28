@@ -11,6 +11,10 @@ public class StatisticsManager
 
     public void increaseStat(EntityPlayer player, StatBase stat, int amount)
     {
+        // CraftBukkit start - fire Statistic events
+        org.bukkit.event.Cancellable cancellable = org.bukkit.craftbukkit.event.CraftEventFactory.handleStatisticsIncrease(player, stat, this.readStat(stat), amount);
+        if (cancellable != null && cancellable.isCancelled()) return;
+        // CraftBukkit end
         this.unlockAchievement(player, stat, this.readStat(stat) + amount);
     }
 

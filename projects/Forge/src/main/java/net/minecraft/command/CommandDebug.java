@@ -40,6 +40,13 @@ public class CommandDebug extends CommandBase
 
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
+        // CraftBukkit start - only allow use when enabled (so that no blank profile results occur)
+        if (!server.profiler.profilingEnabled) {
+            sender.sendMessage(new net.minecraft.util.text.TextComponentString("Vanilla debug profiling is disabled."));
+            sender.sendMessage(new net.minecraft.util.text.TextComponentString("To enable, restart the server with `-DenableDebugMethodProfiler=true' before `-jar'."));
+            sender.sendMessage(new net.minecraft.util.text.TextComponentString("Use `/timings' for plugin timings."));
+            return;
+        } // CraftBukkit end
         if (args.length < 1)
         {
             throw new WrongUsageException("commands.debug.usage", new Object[0]);

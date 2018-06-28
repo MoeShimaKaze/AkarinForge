@@ -356,7 +356,7 @@ public class CommandSpreadPlayers extends CommandBase
                 {
                     blockpos = blockpos.down();
 
-                    if (worldIn.getBlockState(blockpos).getMaterial() != Material.AIR)
+                    if (getType(worldIn, blockpos).getMaterial() != Material.AIR) // CraftBukkit
                     {
                         return blockpos.getY() + 1;
                     }
@@ -372,7 +372,7 @@ public class CommandSpreadPlayers extends CommandBase
                 while (blockpos.getY() > 0)
                 {
                     blockpos = blockpos.down();
-                    Material material = worldIn.getBlockState(blockpos).getMaterial();
+                    Material material = getType(worldIn, blockpos).getMaterial(); // CraftBukkit
 
                     if (material != Material.AIR)
                     {
@@ -382,6 +382,11 @@ public class CommandSpreadPlayers extends CommandBase
 
                 return false;
             }
+            // CraftBukkit start - add a version of getType which force loads chunks
+            private static net.minecraft.block.state.IBlockState getType(World world, BlockPos position) {
+                ((net.minecraft.world.gen.ChunkProviderServer) world.chunkProvider).provideChunk(position.getX() >> 4, position.getZ() >> 4);
+                return world.getBlockState(position);
+            } // CraftBukkit end
 
             public void randomize(Random rand, double p_111097_2_, double p_111097_4_, double p_111097_6_, double p_111097_8_)
             {
