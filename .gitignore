@@ -1,26 +1,26 @@
-# eclipse
+#eclipse
 /bin
 /.settings
 /.classpath
 
-# In case people make their workspace in the repo
+#In case people make their workspace in the repo
 /eclipse/
 
-# idea
+#idea
 /.idea
 /classes
 *.iml
 
-# gradle
+#gradle
 /build
 /.gradle
 
-# occupational hazards
+#occupational hazards
 #/projects/
 /repo/
 /buildSrc
 
-# Patch rejects
+#Patch rejects
 /patches-/
 *.patch.rej
 
@@ -33,3 +33,9 @@ changelog.txt
 
 # Akarin forge
 /history
+.travis.yml
+/patches/
+# Generate during build
+CREDITS-fml.txt
+LICENSE-new.txt
+LICENSE-fml.txt
