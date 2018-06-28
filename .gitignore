@@ -18,7 +18,6 @@ build
 
 #occupational hazards
 #/projects/
-/repo/
 /buildSrc
 
 #Patch rejects
@@ -36,6 +35,7 @@ changelog.txt
 /history
 .travis.yml
 /patches/
+/cache
 projects.ipr
 projects.iws
 Forge Client.launch
