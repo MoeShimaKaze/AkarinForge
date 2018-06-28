@@ -1,18 +1,18 @@
 #eclipse
-/bin
-/.settings
-/.classpath
+bin
+.settings
+.classpath
 
 #In case people make their workspace in the repo
 /eclipse/
 
 #idea
-/.idea
-/classes
+.idea
+classes
 *.iml
 
 #gradle
-/build
+build
 /.gradle
 
 #occupational hazards
