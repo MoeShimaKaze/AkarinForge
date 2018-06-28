@@ -26,7 +26,9 @@ echo "[Akarin Forge] Setup Workspace.."
 	./scripts/setupProject.sh
 	
 	echo "[Akarin Forge] Touch sources: cache -> workspace"
-	\rm "$srcdir/src" -rf
+	if [ -d "$srcdir/src/main" ]; then
+		\rm "$srcdir/src/main" -rf
+	fi
 	\cp -rf "$tempdir/src" "$srcdir/"
 	\cp -rf "$tempdir/build.gradle" "$srcdir/build.gradle"
 	
