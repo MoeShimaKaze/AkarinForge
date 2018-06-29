@@ -171,6 +171,20 @@ public class TileEntityEndGateway extends TileEntityEndPortal implements ITickab
             if (this.exitPortal != null)
             {
                 BlockPos blockpos = this.exactTeleport ? this.exitPortal : this.findExitPosition();
+                // CraftBukkit start - Fire PlayerTeleportEvent
+                if (entityIn instanceof net.minecraft.entity.player.EntityPlayerMP) {
+                    org.bukkit.craftbukkit.entity.CraftPlayer player = (org.bukkit.craftbukkit.entity.CraftPlayer) entityIn.getBukkitEntity();
+                    org.bukkit.Location location = new org.bukkit.Location(world.getWorld(), (double) blockpos.getX() + 0.5D, (double) blockpos.getY() + 0.5D, (double) blockpos.getZ() + 0.5D);
+                    location.setPitch(player.getLocation().getPitch());
+                    location.setYaw(player.getLocation().getYaw());
+                    org.bukkit.event.player.PlayerTeleportEvent teleEvent = new org.bukkit.event.player.PlayerTeleportEvent(player, player.getLocation(), location, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.END_GATEWAY);
+                    org.bukkit.Bukkit.getPluginManager().callEvent(teleEvent);
+                    if (teleEvent.isCancelled()) return;
+                    ((net.minecraft.entity.player.EntityPlayerMP) entityIn).connection.teleport(teleEvent.getTo());
+                    this.triggerCooldown(); // CraftBukkit - call at end of method
+                    return;
+
+                } // CraftBukkit end
                 entityIn.setPositionAndUpdate((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D);
             }
 

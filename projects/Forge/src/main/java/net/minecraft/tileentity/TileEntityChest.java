@@ -36,6 +36,26 @@ public class TileEntityChest extends TileEntityLockableLoot implements ITickable
     public int numPlayersUsing;
     private int ticksSinceSync;
     private BlockChest.Type cachedChestType;
+    // CraftBukkit start - add fields and methods
+    public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    private int maxStack = MAX_STACK;
+
+    public java.util.List<ItemStack> getContents() {
+        return this.chestContents;
+    }
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+    }
+    // CraftBukkit end
 
     public TileEntityChest()
     {
@@ -109,7 +129,7 @@ public class TileEntityChest extends TileEntityLockableLoot implements ITickable
 
     public int getInventoryStackLimit()
     {
-        return 64;
+        return maxStack; // CraftBukkit
     }
 
     public void updateContainingBlockInfo()
@@ -324,9 +344,16 @@ public class TileEntityChest extends TileEntityLockableLoot implements ITickable
             {
                 this.numPlayersUsing = 0;
             }
+            int oldPower = Math.max(0, Math.min(15, this.numPlayersUsing)); // CraftBukkit - Get power before new viewer is added
 
             ++this.numPlayersUsing;
+            if (this.world == null) return; // CraftBukkit
             this.world.addBlockEvent(this.pos, this.getBlockType(), 1, this.numPlayersUsing);
+            // CraftBukkit start - Call redstone event
+            if (this.getBlockType() == net.minecraft.init.Blocks.TRAPPED_CHEST) {
+                int newPower = Math.max(0, Math.min(15, this.numPlayersUsing));
+                if (oldPower != newPower) org.bukkit.craftbukkit.event.CraftEventFactory.callRedstoneChange(world, pos.getX(), pos.getY(), pos.getZ(), oldPower, newPower);
+            } // CraftBukkit end
             this.world.notifyNeighborsOfStateChange(this.pos, this.getBlockType(), false);
 
             if (this.getChestType() == BlockChest.Type.TRAP)
@@ -340,16 +367,25 @@ public class TileEntityChest extends TileEntityLockableLoot implements ITickable
     {
         if (!player.isSpectator() && this.getBlockType() instanceof BlockChest)
         {
+            int oldPower = Math.max(0, Math.min(15, this.numPlayersUsing)); // CraftBukkit - Get power before new viewer is added
             --this.numPlayersUsing;
             this.world.addBlockEvent(this.pos, this.getBlockType(), 1, this.numPlayersUsing);
             this.world.notifyNeighborsOfStateChange(this.pos, this.getBlockType(), false);
 
             if (this.getChestType() == BlockChest.Type.TRAP)
             {
+                // CraftBukkit start - Call redstone event
+                int newPower = Math.max(0, Math.min(15, this.numPlayersUsing));
+                if (oldPower != newPower) org.bukkit.craftbukkit.event.CraftEventFactory.callRedstoneChange(world, pos.getX(), pos.getY(), pos.getZ(), oldPower, newPower);
+                // CraftBukkit end
                 this.world.notifyNeighborsOfStateChange(this.pos.down(), this.getBlockType(), false);
             }
         }
     }
+    // CraftBukkit start
+    @Override public boolean onlyOpsCanSetNbt() {
+        return true;
+    } // CraftBukkit end
 
     public net.minecraftforge.items.VanillaDoubleChestItemHandler doubleChestHandler;
 

@@ -34,6 +34,26 @@ public class TileEntityBrewingStand extends TileEntityLockable implements ITicka
     private Item ingredientID;
     private String customName;
     private int fuel;
+    // CraftBukkit start - add fields and methods
+    private int lastTick = net.minecraft.server.MinecraftServer.currentTick;
+    public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    private int maxStack = 64;
+
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public java.util.List<ItemStack> getContents() {
+        return this.brewingItemStacks;
+    }
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+    } // CraftBukkit end
 
     public String getName()
     {
@@ -74,8 +94,13 @@ public class TileEntityBrewingStand extends TileEntityLockable implements ITicka
 
         if (this.fuel <= 0 && itemstack.getItem() == Items.BLAZE_POWDER)
         {
-            this.fuel = 20;
-            itemstack.shrink(1);
+            // CraftBukkit start
+            org.bukkit.event.inventory.BrewingStandFuelEvent event = new org.bukkit.event.inventory.BrewingStandFuelEvent(world.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()), org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemstack), 20);
+            this.world.getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) return;
+            this.fuel = event.getFuelPower(); // PAIL fuelLevel
+            if (this.fuel > 0 && event.isConsuming()) itemstack.shrink(1);
+            // CraftBukkit end
             this.markDirty();
         }
 
@@ -83,10 +108,14 @@ public class TileEntityBrewingStand extends TileEntityLockable implements ITicka
         boolean flag1 = this.brewTime > 0;
         ItemStack itemstack1 = this.brewingItemStacks.get(3);
 
+        // CraftBukkit start - Use wall time instead of ticks for brewing
+        int elapsedTicks = net.minecraft.server.MinecraftServer.currentTick - this.lastTick;
+        this.lastTick = net.minecraft.server.MinecraftServer.currentTick;
         if (flag1)
         {
-            --this.brewTime;
-            boolean flag2 = this.brewTime == 0;
+            this.brewTime -= elapsedTicks;
+            boolean flag2 = this.brewTime <= 0; // == -> <=
+            // CraftBukkit end
 
             if (flag2 && flag)
             {
@@ -182,6 +211,13 @@ public class TileEntityBrewingStand extends TileEntityLockable implements ITicka
 
     private void brewPotions()
     {
+        // CraftBukkit start
+        org.bukkit.inventory.InventoryHolder owner = this.getOwner();
+        if (owner != null) {
+            org.bukkit.event.inventory.BrewEvent event = new org.bukkit.event.inventory.BrewEvent(world.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()), (org.bukkit.inventory.BrewerInventory) owner.getInventory(), this.fuel);
+            org.bukkit.Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) return;
+        } // CraftBukkit end
         if (net.minecraftforge.event.ForgeEventFactory.onPotionAttemptBrew(brewingItemStacks)) return;
         ItemStack itemstack = this.brewingItemStacks.get(3);
 
@@ -269,7 +305,7 @@ public class TileEntityBrewingStand extends TileEntityLockable implements ITicka
 
     public int getInventoryStackLimit()
     {
-        return 64;
+        return this.maxStack; // CraftBukkit
     }
 
     public boolean isUsableByPlayer(EntityPlayer player)

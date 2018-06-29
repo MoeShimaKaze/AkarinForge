@@ -2,6 +2,9 @@ package net.minecraft.tileentity;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import akka.routing.ListenerMessage;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -51,6 +54,37 @@ public class TileEntityBeacon extends TileEntityLockable implements ITickable, I
     private Potion secondaryEffect;
     private ItemStack payment = ItemStack.EMPTY;
     private String customName;
+    // CraftBukkit start - add fields and methods
+    public List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    private int maxStack = MAX_STACK;
+
+    public List<ItemStack> getContents() {
+        return Arrays.asList(this.payment);
+    }
+
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+
+    public List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+    }
+
+    public PotionEffect getPrimaryEffect() {
+        return (this.primaryEffect != null) ? org.bukkit.craftbukkit.potion.CraftPotionUtil.toBukkit(new PotionEffect(this.primaryEffect, getLevel(), getAmplification(), true, true)) : null;
+    }
+
+    public PotionEffect getSecondaryEffect() {
+        return (hasSecondaryEffect()) ? org.bukkit.craftbukkit.potion.CraftPotionUtil.toBukkit(new PotionEffect(this.secondaryEffect, getLevel(), getAmplification(), true, true)) : null;
+    } // CraftBukkit end
 
     public void update()
     {
@@ -69,11 +103,9 @@ public class TileEntityBeacon extends TileEntityLockable implements ITickable, I
         }
     }
 
-    private void addEffectsToPlayers()
+    // CraftBukkit start - split into components
+    private byte getAmplification() {
     {
-        if (this.isComplete && this.levels > 0 && !this.world.isRemote && this.primaryEffect != null)
-        {
-            double d0 = (double)(this.levels * 10 + 10);
             int i = 0;
 
             if (this.levels >= 4 && this.primaryEffect == this.secondaryEffect)
@@ -81,27 +113,45 @@ public class TileEntityBeacon extends TileEntityLockable implements ITickable, I
                 i = 1;
             }
 
+            return (byte) i;
+    }}
+    private int getLevel() {{
             int j = (9 + this.levels * 2) * 20;
+            return j;
+    }}
+    public List<EntityPlayer> getHumansInRange() {{
+            double d0 = (double) (this.levels * 10 + 10);
             int k = this.pos.getX();
             int l = this.pos.getY();
             int i1 = this.pos.getZ();
             AxisAlignedBB axisalignedbb = (new AxisAlignedBB((double)k, (double)l, (double)i1, (double)(k + 1), (double)(l + 1), (double)(i1 + 1))).grow(d0).expand(0.0D, (double)this.world.getHeight(), 0.0D);
             List<EntityPlayer> list = this.world.<EntityPlayer>getEntitiesWithinAABB(EntityPlayer.class, axisalignedbb);
 
+            return list;
+    }}
+    private void applyEffect(List<EntityPlayer> list, Potion effects, int j, int i) {{
             for (EntityPlayer entityplayer : list)
             {
-                entityplayer.addPotionEffect(new PotionEffect(this.primaryEffect, j, i, true, true));
+                entityplayer.addPotionEffect(new PotionEffect(effects, j, i, true, true));
             }
-
+    }}
+    private boolean hasSecondaryEffect() {{
             if (this.levels >= 4 && this.primaryEffect != this.secondaryEffect && this.secondaryEffect != null)
             {
-                for (EntityPlayer entityplayer1 : list)
-                {
-                    entityplayer1.addPotionEffect(new PotionEffect(this.secondaryEffect, j, 0, true, true));
-                }
+                return true;
             }
+            return false;
         }
     }
+    private void addEffectsToPlayers() {
+        if (this.isComplete && this.levels > 0 && !this.world.isRemote && this.primaryEffect != null) {
+            byte b0 = getAmplification();
+            int i = getLevel();
+            List<EntityPlayer> list = getHumansInRange();
+            applyEffect(list, this.primaryEffect, i, b0);
+            if (hasSecondaryEffect()) applyEffect(list, this.secondaryEffect, i, 0);
+        }
+    } // CraftBukkit end
 
     private void updateSegmentColors()
     {
@@ -285,8 +335,10 @@ public class TileEntityBeacon extends TileEntityLockable implements ITickable, I
     public void readFromNBT(NBTTagCompound compound)
     {
         super.readFromNBT(compound);
-        this.primaryEffect = isBeaconEffect(compound.getInteger("Primary"));
-        this.secondaryEffect = isBeaconEffect(compound.getInteger("Secondary"));
+        // Craftbukkit start - persist manually set non-default beacon effects (SPIGOT-3598)
+        this.primaryEffect = Potion.getPotionById(compound.getInteger("Primary"));
+        this.secondaryEffect = Potion.getPotionById(compound.getInteger("Secondary"));
+        // Craftbukkit end
         this.levels = compound.getInteger("Levels");
     }
 
