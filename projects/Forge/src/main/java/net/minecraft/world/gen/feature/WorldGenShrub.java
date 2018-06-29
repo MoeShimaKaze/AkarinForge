@@ -60,7 +60,7 @@ public class WorldGenShrub extends WorldGenTrees
                     }
                 }
             }
-        }
+        } else return false; // CraftBukkit - Return false if gen was unsuccessful
 
         return true;
     }
