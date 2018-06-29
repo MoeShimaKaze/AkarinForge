@@ -1017,6 +1017,7 @@ public class Chunk implements net.minecraftforge.common.capabilities.ICapability
     }
 
     public void loadNearby(IChunkProvider ichunkprovider, IChunkGenerator chunkgenerator, boolean newChunk) { populate(ichunkprovider, chunkgenerator, newChunk); } // Akarin Forge
+    public void populate(IChunkProvider ichunkprovider, IChunkGenerator chunkgenerator) { populate(ichunkprovider, chunkgenerator, false); } // Akarin Forge
     public void populate(IChunkProvider chunkProvider, IChunkGenerator chunkGenrator, boolean newChunk)
     {
         // CraftBukkit start

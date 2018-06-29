@@ -29,8 +29,10 @@ public class FunctionManager implements ITickable
     private FunctionObject gameLoopFunction;
     private final ArrayDeque<FunctionManager.QueuedCommand> commandQueue = new ArrayDeque<FunctionManager.QueuedCommand>();
     private boolean isExecuting = false;
-    private final ICommandSender gameLoopFunctionSender = new ICommandSender()
-    {
+    private final ICommandSender gameLoopFunctionSender = new CustomFunctionListener(); // Akarin Forge
+    // Akarin Forge - start
+    public class CustomFunctionListener implements ICommandSender {
+        public org.bukkit.command.CommandSender sender = new org.bukkit.craftbukkit.command.CraftFunctionCommandSender(this); // CraftBukkit // Akarin Forge - public
         public String getName()
         {
             return FunctionManager.this.currentGameLoopFunctionId;
@@ -41,13 +43,13 @@ public class FunctionManager implements ITickable
         }
         public World getEntityWorld()
         {
-            return FunctionManager.this.server.worlds[0];
+            return FunctionManager.this.server.worlds.get(0); // CraftBukkit
         }
         public MinecraftServer getServer()
         {
             return FunctionManager.this.server;
         }
-    };
+    }; // Akarin Forge - end
 
     public FunctionManager(@Nullable File functionDirIn, MinecraftServer serverIn)
     {
@@ -69,7 +71,7 @@ public class FunctionManager implements ITickable
 
     public int getMaxCommandChainLength()
     {
-        return this.server.worlds[0].getGameRules().getInt("maxCommandChainLength");
+        return this.server.worlds.get(0).getGameRules().getInt("maxCommandChainLength"); // CraftBukkit
     }
 
     public Map<ResourceLocation, FunctionObject> getFunctions()
@@ -79,7 +81,7 @@ public class FunctionManager implements ITickable
 
     public void update()
     {
-        String s = this.server.worlds[0].getGameRules().getString("gameLoopFunction");
+        String s = this.server.worlds.get(0).getGameRules().getString("gameLoopFunction"); // CraftBukkit
 
         if (!s.equals(this.currentGameLoopFunctionId))
         {

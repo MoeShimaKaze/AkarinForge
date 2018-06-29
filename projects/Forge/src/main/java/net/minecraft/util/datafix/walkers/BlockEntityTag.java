@@ -42,7 +42,7 @@ public class BlockEntityTag implements IDataWalker
 
                 if (s1 == null)
                 {
-                    LOGGER.warn("Unable to resolve BlockEntity for ItemInstance: {}", (Object)s);
+                    // LOGGER.warn("Unable to resolve BlockEntity for ItemInstance: {}", (Object)s); // CraftBukkit - Remove unnecessary warning (occurs when deserializing a Shulker Box item)
                     flag = false;
                 }
                 else

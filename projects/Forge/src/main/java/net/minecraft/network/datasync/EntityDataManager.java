@@ -91,7 +91,7 @@ public class EntityDataManager
         }
     }
 
-    public <T> void register(DataParameter<T> key, T value)
+    public <T> void register(DataParameter<T> key, Object value) // CraftBukkit T -> Object
     {
         int i = key.getId();
 
@@ -113,7 +113,7 @@ public class EntityDataManager
         }
     }
 
-    private <T> void setEntry(DataParameter<T> key, T value)
+    private <T> void setEntry(DataParameter<T> key, Object value) // CraftBukkit T -> Object
     {
         EntityDataManager.DataEntry<T> dataentry = new EntityDataManager.DataEntry<T>(key, value);
         this.lock.writeLock().lock();

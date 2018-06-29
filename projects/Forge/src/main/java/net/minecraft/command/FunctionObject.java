@@ -109,6 +109,15 @@ public class FunctionObject
             public void execute(FunctionManager functionManagerIn, ICommandSender sender, ArrayDeque<FunctionManager.QueuedCommand> commandQueue, int maxCommandChainLength)
             {
                 functionManagerIn.getCommandManager().executeCommand(sender, this.command);
+                // CraftBukkit start
+                org.bukkit.command.CommandSender bsender;
+                if (sender instanceof net.minecraft.advancements.FunctionManager.CustomFunctionListener) {
+                    bsender = ((net.minecraft.advancements.FunctionManager.CustomFunctionListener) sender).sender;
+                } else {
+                    bsender = net.minecraft.tileentity.CommandBlockBaseLogic.unwrapSender(sender);
+                }
+                net.minecraft.tileentity.CommandBlockBaseLogic.executeSafely(sender, bsender, this.command);
+                // CraftBukkit end
             }
 
             public String toString()
