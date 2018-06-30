@@ -74,6 +74,7 @@ public class EntityXPOrb extends Entity
     public void onUpdate()
     {
         super.onUpdate();
+        EntityPlayer prevTarget = this.closestPlayer;// CraftBukkit - store old target
 
         if (this.delayBeforeCanPickup > 0)
         {
@@ -117,6 +118,15 @@ public class EntityXPOrb extends Entity
 
         if (this.closestPlayer != null)
         {
+            // CraftBukkit start
+            boolean cancelled = false;
+            if (this.closestPlayer != prevTarget) {
+                org.bukkit.event.entity.EntityTargetLivingEntityEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callEntityTargetLivingEvent(this, closestPlayer, org.bukkit.event.entity.EntityTargetEvent.TargetReason.CLOSEST_PLAYER);
+                net.minecraft.entity.EntityLivingBase target = event.getTarget() == null ? null : ((org.bukkit.craftbukkit.entity.CraftLivingEntity) event.getTarget()).getHandle();
+                closestPlayer = target instanceof EntityPlayer ? (EntityPlayer) target : null;
+                cancelled = event.isCancelled();
+            }
+            if (!cancelled && closestPlayer != null) { // CraftBukkit end
             double d1 = (this.closestPlayer.posX - this.posX) / 8.0D;
             double d2 = (this.closestPlayer.posY + (double)this.closestPlayer.getEyeHeight() / 2.0D - this.posY) / 8.0D;
             double d3 = (this.closestPlayer.posZ - this.posZ) / 8.0D;
@@ -130,6 +140,7 @@ public class EntityXPOrb extends Entity
                 this.motionY += d2 / d4 * d5 * 0.1D;
                 this.motionZ += d3 / d4 * d5 * 0.1D;
             }
+            } // CraftBukkit
         }
 
         this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
@@ -219,13 +230,18 @@ public class EntityXPOrb extends Entity
                 if (!itemstack.isEmpty() && itemstack.isItemDamaged())
                 {
                     int i = Math.min(this.xpToDurability(this.xpValue), itemstack.getItemDamage());
+                    // CraftBukkit start
+                    org.bukkit.event.player.PlayerItemMendEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerItemMendEvent(entityIn, this, itemstack, i);
+                    i = event.getRepairAmount();
+                    if (!event.isCancelled()) { // CraftBukkit end
                     this.xpValue -= this.durabilityToXp(i);
                     itemstack.setItemDamage(itemstack.getItemDamage() - i);
+                    } // CraftBukkit
                 }
 
                 if (this.xpValue > 0)
                 {
-                    entityIn.addExperience(this.xpValue);
+                    entityIn.addExperience(org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerExpChangeEvent(entityIn, this.xpValue).getAmount());
                 }
 
                 this.setDead();
@@ -295,6 +311,24 @@ public class EntityXPOrb extends Entity
 
     public static int getXPSplit(int expValue)
     {
+        // CraftBukkit start
+        if (expValue > 162670129) return expValue - 100000;
+        if (expValue > 81335063) return 81335063;
+        if (expValue > 40667527) return 40667527;
+        if (expValue > 20333759) return 20333759;
+        if (expValue > 10166857) return 10166857;
+        if (expValue > 5083423) return 5083423;
+        if (expValue > 2541701) return 2541701;
+        if (expValue > 1270849) return 1270849;
+        if (expValue > 635413) return 635413;
+        if (expValue > 317701) return 317701;
+        if (expValue > 158849) return 158849;
+        if (expValue > 79423) return 79423;
+        if (expValue > 39709) return 39709;
+        if (expValue > 19853) return 19853;
+        if (expValue > 9923) return 9923;
+        if (expValue > 4957) return 4957;
+        // CraftBukkit end
         if (expValue >= 2477)
         {
             return 2477;

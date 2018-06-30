@@ -187,8 +187,10 @@ public class EntityFireworkRocket extends Entity
 
         if (!this.world.isRemote && this.fireworkAge > this.lifetime)
         {
+            if (!org.bukkit.craftbukkit.event.CraftEventFactory.callFireworkExplodeEvent(this).isCancelled()) { // CraftBukkit
             this.world.setEntityState(this, (byte)17);
             this.dealExplosionDamage();
+            } // CraftBukkit
             this.setDead();
         }
     }
@@ -209,7 +211,9 @@ public class EntityFireworkRocket extends Entity
         {
             if (this.boostedEntity != null)
             {
+                org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = this; // CraftBukkit
                 this.boostedEntity.attackEntityFrom(DamageSource.FIREWORKS, (float)(5 + nbttaglist.tagCount() * 2));
+                org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = null; // CraftBukkit
             }
 
             double d0 = 5.0D;
@@ -235,7 +239,9 @@ public class EntityFireworkRocket extends Entity
                     if (flag)
                     {
                         float f1 = f * (float)Math.sqrt((5.0D - (double)this.getDistance(entitylivingbase)) / 5.0D);
+                        org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = this; // CraftBukkit
                         entitylivingbase.attackEntityFrom(DamageSource.FIREWORKS, f1);
+                        org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = null; // CraftBukkit
                     }
                 }
             }

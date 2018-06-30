@@ -98,6 +98,14 @@ public class EntityEnderPearl extends EntityThrowable
 
                 if (entityplayermp.connection.getNetworkManager().isChannelOpen() && entityplayermp.world == this.world && !entityplayermp.isPlayerSleeping())
                 {
+                    // CraftBukkit start - Fire PlayerTeleportEvent
+                    org.bukkit.craftbukkit.entity.CraftPlayer player = (org.bukkit.craftbukkit.entity.CraftPlayer) entityplayermp.getBukkitEntity();
+                    org.bukkit.Location location = getBukkitEntity().getLocation();
+                    location.setPitch(player.getLocation().getPitch());
+                    location.setYaw(player.getLocation().getYaw());
+                    org.bukkit.event.player.PlayerTeleportEvent teleEvent = new org.bukkit.event.player.PlayerTeleportEvent(player, player.getLocation(), location, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.ENDER_PEARL);
+                    org.bukkit.Bukkit.getPluginManager().callEvent(teleEvent);
+                    if (!teleEvent.isCancelled() && !entityplayermp.connection.isDisconnected()) { // CraftBukkit end
                     net.minecraftforge.event.entity.living.EnderTeleportEvent event = new net.minecraftforge.event.entity.living.EnderTeleportEvent(entityplayermp, this.posX, this.posY, this.posZ, 5.0F);
                     if (!net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event))
                     { // Don't indent to lower patch size
@@ -106,7 +114,7 @@ public class EntityEnderPearl extends EntityThrowable
                         EntityEndermite entityendermite = new EntityEndermite(this.world);
                         entityendermite.setSpawnedByPlayer(true);
                         entityendermite.setLocationAndAngles(entitylivingbase.posX, entitylivingbase.posY, entitylivingbase.posZ, entitylivingbase.rotationYaw, entitylivingbase.rotationPitch);
-                        this.world.spawnEntity(entityendermite);
+                        this.world.addEntity(entityendermite, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.ENDER_PEARL);
                     }
 
                     if (entitylivingbase.isRiding())
@@ -114,10 +122,19 @@ public class EntityEnderPearl extends EntityThrowable
                         entitylivingbase.dismountRidingEntity();
                     }
 
-                    entitylivingbase.setPositionAndUpdate(event.getTargetX(), event.getTargetY(), event.getTargetZ());
+                    // Akarin Forge - start
+                    boolean forgeHooked = event.getTargetX() != this.posX || event.getTargetY() != this.posY || event.getTargetZ() != this.posZ;
+                    if (forgeHooked) {
+                        entitylivingbase.setPositionAndUpdate(event.getTargetX(), event.getTargetY(), event.getTargetZ());
+                    } else {
+                        entityplayermp.connection.teleport(teleEvent.getTo()); // Akarin Forge - TODO better treat
+                    } // Akarin Forge - end
+                    org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = this; // CraftBukkit
                     entitylivingbase.fallDistance = 0.0F;
+                    org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = null; // CraftBukkit
                     entitylivingbase.attackEntityFrom(DamageSource.FALL, event.getAttackDamage());
                     }
+                    } // CraftBukkit
                 }
             }
             else if (entitylivingbase != null)

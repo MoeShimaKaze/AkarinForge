@@ -20,7 +20,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class EntityLlamaSpit extends Entity implements IProjectile
 {
-    public EntityLlama owner;
+    public net.minecraft.entity.EntityLivingBase owner; // CraftBukkit - type
     private NBTTagCompound ownerNbt;
 
     public EntityLlamaSpit(World worldIn)
@@ -211,6 +211,7 @@ public class EntityLlamaSpit extends Entity implements IProjectile
 
     public void onHit(RayTraceResult p_190536_1_)
     {
+        org.bukkit.craftbukkit.event.CraftEventFactory.callProjectileHitEvent(this, p_190536_1_); // Craftbukkit - Call event
         if (p_190536_1_.entityHit != null && this.owner != null)
         {
             p_190536_1_.entityHit.attackEntityFrom(DamageSource.causeIndirectDamage(this, this.owner).setProjectile(), 1.0F);

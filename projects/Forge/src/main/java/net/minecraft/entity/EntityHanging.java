@@ -63,6 +63,8 @@ public abstract class EntityHanging extends Entity
     {
         if (this.facingDirection != null)
         {
+            this.setEntityBoundingBox(calculateBoundingBox(this, this.hangingPosition, this.facingDirection, this.getWidthPixels(), this.getHeightPixels())); // CraftBukkit
+            /* // CraftBukkit - code moved in to calculateBoundingBox
             double d0 = (double)this.hangingPosition.getX() + 0.5D;
             double d1 = (double)this.hangingPosition.getY() + 0.5D;
             double d2 = (double)this.hangingPosition.getZ() + 0.5D;
@@ -95,10 +97,47 @@ public abstract class EntityHanging extends Entity
             d7 = d7 / 32.0D;
             d8 = d8 / 32.0D;
             this.setEntityBoundingBox(new AxisAlignedBB(d0 - d6, d1 - d7, d2 - d8, d0 + d6, d1 + d7, d2 + d8));
+            */ // CraftBukkit
         }
     }
+    // CraftBukkit start - break out BB calc into own method
+    public static AxisAlignedBB calculateBoundingBox(Entity entity, BlockPos blockPosition, EnumFacing direction, int width, int height) {
+        double d0 = (double) blockPosition.getX() + 0.5D;
+        double d1 = (double) blockPosition.getY() + 0.5D;
+        double d2 = (double) blockPosition.getZ() + 0.5D;
+        double d3 = 0.46875D;
+        double d4 = offs(width);
+        double d5 = offs(height);
 
-    private double offs(int p_190202_1_)
+        d0 -= (double) direction.getFrontOffsetX() * 0.46875D;
+        d2 -= (double) direction.getFrontOffsetZ() * 0.46875D;
+        d1 += d5;
+        EnumFacing enumdirection = direction.rotateYCCW();
+
+        d0 += d4 * (double) enumdirection.getFrontOffsetX();
+        d2 += d4 * (double) enumdirection.getFrontOffsetZ();
+        if (entity != null) {
+            entity.posX = d0;
+            entity.posY = d1;
+            entity.posZ = d2;
+        }
+        double d6 = (double) width;
+        double d7 = (double) height;
+        double d8 = (double) width;
+
+        if (direction.getAxis() == EnumFacing.Axis.Z) {
+            d8 = 1.0D;
+        } else {
+            d6 = 1.0D;
+        }
+
+        d6 /= 32.0D;
+        d7 /= 32.0D;
+        d8 /= 32.0D;
+        return new AxisAlignedBB(d0 - d6, d1 - d7, d2 - d8, d0 + d6, d1 + d7, d2 + d8);
+    }
+
+    private static double offs(int p_190202_1_) // CraftBukkit - static
     {
         return p_190202_1_ % 32 == 0 ? 0.5D : 0.0D;
     }
@@ -115,6 +154,18 @@ public abstract class EntityHanging extends Entity
 
             if (!this.isDead && !this.onValidSurface())
             {
+                // CraftBukkit start - fire break events
+                net.minecraft.block.material.Material material = this.world.getBlockState(new BlockPos(this)).getMaterial();
+                org.bukkit.event.hanging.HangingBreakEvent.RemoveCause cause;
+                if (!material.equals(net.minecraft.block.material.Material.AIR)) {
+                    cause = org.bukkit.event.hanging.HangingBreakEvent.RemoveCause.OBSTRUCTION;
+                } else {
+                    cause = org.bukkit.event.hanging.HangingBreakEvent.RemoveCause.PHYSICS;
+                }
+                org.bukkit.event.hanging.HangingBreakEvent event = new org.bukkit.event.hanging.HangingBreakEvent((org.bukkit.entity.Hanging) this.getBukkitEntity(), cause);
+                this.world.getServer().getPluginManager().callEvent(event);
+                if (isDead || event.isCancelled()) return;
+                // CraftBukkit end
                 this.setDead();
                 this.onBroken((Entity)null);
             }
@@ -183,6 +234,16 @@ public abstract class EntityHanging extends Entity
         {
             if (!this.isDead && !this.world.isRemote)
             {
+                // CraftBukkit start - fire break events
+                org.bukkit.event.hanging.HangingBreakEvent event = new org.bukkit.event.hanging.HangingBreakEvent((org.bukkit.entity.Hanging) this.getBukkitEntity(), org.bukkit.event.hanging.HangingBreakEvent.RemoveCause.DEFAULT);
+                if (source.getTrueSource() != null) {
+                    event = new org.bukkit.event.hanging.HangingBreakByEntityEvent((org.bukkit.entity.Hanging) this.getBukkitEntity(), source.getTrueSource() == null ? null : source.getTrueSource().getBukkitEntity(), source.isExplosion() ? org.bukkit.event.hanging.HangingBreakEvent.RemoveCause.EXPLOSION : org.bukkit.event.hanging.HangingBreakEvent.RemoveCause.ENTITY);
+                } else if (source.isExplosion()) {
+                    event = new org.bukkit.event.hanging.HangingBreakEvent((org.bukkit.entity.Hanging) this.getBukkitEntity(), org.bukkit.event.hanging.HangingBreakEvent.RemoveCause.EXPLOSION);
+                }
+                this.world.getServer().getPluginManager().callEvent(event);
+                if (this.isDead || event.isCancelled()) return true;
+                // CraftBukkit end
                 this.setDead();
                 this.markVelocityChanged();
                 this.onBroken(source.getTrueSource());
@@ -196,6 +257,12 @@ public abstract class EntityHanging extends Entity
     {
         if (!this.world.isRemote && !this.isDead && x * x + y * y + z * z > 0.0D)
         {
+            if (this.isDead) return; // CraftBukkit
+            // CraftBukkit start - fire break events
+            org.bukkit.event.hanging.HangingBreakEvent event = new org.bukkit.event.hanging.HangingBreakEvent((org.bukkit.entity.Hanging) this.getBukkitEntity(), org.bukkit.event.hanging.HangingBreakEvent.RemoveCause.PHYSICS);
+            this.world.getServer().getPluginManager().callEvent(event);
+            if (this.isDead || event.isCancelled()) return;
+            // CraftBukkit end
             this.setDead();
             this.onBroken((Entity)null);
         }
@@ -203,7 +270,7 @@ public abstract class EntityHanging extends Entity
 
     public void addVelocity(double x, double y, double z)
     {
-        if (!this.world.isRemote && !this.isDead && x * x + y * y + z * z > 0.0D)
+        if (false && !this.world.isRemote && !this.isDead && x * x + y * y + z * z > 0.0D) // CraftBukkit - not needed
         {
             this.setDead();
             this.onBroken((Entity)null);

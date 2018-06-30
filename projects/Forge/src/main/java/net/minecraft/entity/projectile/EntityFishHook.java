@@ -356,6 +356,7 @@ public class EntityFishHook extends Entity
 
         if (raytraceresult != null && raytraceresult.typeOfHit != RayTraceResult.Type.MISS)
         {
+            org.bukkit.craftbukkit.event.CraftEventFactory.callProjectileHitEvent(this, raytraceresult); // Craftbukkit - Call event
             if (raytraceresult.typeOfHit == RayTraceResult.Type.ENTITY)
             {
                 this.caughtEntity = raytraceresult.entityHit;
@@ -397,6 +398,10 @@ public class EntityFishHook extends Entity
             {
                 this.ticksCaughtDelay = 0;
                 this.ticksCatchableDelay = 0;
+                // CraftBukkit start
+                org.bukkit.event.player.PlayerFishEvent playerFishEvent = new org.bukkit.event.player.PlayerFishEvent((org.bukkit.entity.Player) this.angler.getBukkitEntity(), null, (org.bukkit.entity.Fish) this.getBukkitEntity(), org.bukkit.event.player.PlayerFishEvent.State.FAILED_ATTEMPT);
+                this.world.getServer().getPluginManager().callEvent(playerFishEvent);
+                // CraftBukkit end
             }
             else
             {
@@ -433,6 +438,11 @@ public class EntityFishHook extends Entity
             }
             else
             {
+                // CraftBukkit start
+                org.bukkit.event.player.PlayerFishEvent playerFishEvent = new org.bukkit.event.player.PlayerFishEvent((org.bukkit.entity.Player) this.angler.getBukkitEntity(), null, (org.bukkit.entity.Fish) this.getBukkitEntity(), org.bukkit.event.player.PlayerFishEvent.State.BITE);
+                this.world.getServer().getPluginManager().callEvent(playerFishEvent);
+                if (playerFishEvent.isCancelled()) return;
+                // CraftBukkit end
                 this.motionY = (double)(-0.4F * MathHelper.nextFloat(this.rand, 0.6F, 1.0F));
                 this.playSound(SoundEvents.ENTITY_BOBBER_SPLASH, 0.25F, 1.0F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
                 double d3 = this.getEntityBoundingBox().minY + 0.5D;
@@ -509,6 +519,11 @@ public class EntityFishHook extends Entity
             net.minecraftforge.event.entity.player.ItemFishedEvent event = null;
             if (this.caughtEntity != null)
             {
+                // CraftBukkit start
+                org.bukkit.event.player.PlayerFishEvent playerFishEvent = new org.bukkit.event.player.PlayerFishEvent((org.bukkit.entity.Player) this.angler.getBukkitEntity(), this.caughtEntity.getBukkitEntity(), (org.bukkit.entity.Fish) this.getBukkitEntity(), org.bukkit.event.player.PlayerFishEvent.State.CAUGHT_ENTITY);
+                this.world.getServer().getPluginManager().callEvent(playerFishEvent);
+                if (playerFishEvent.isCancelled()) return 0;
+                // CraftBukkit end
                 this.bringInHookedEntity();
                 this.world.setEntityState(this, (byte)31);
                 i = this.caughtEntity instanceof EntityItem ? 3 : 5;
@@ -529,6 +544,12 @@ public class EntityFishHook extends Entity
                 for (ItemStack itemstack : result)
                 {
                     EntityItem entityitem = new EntityItem(this.world, this.posX, this.posY, this.posZ, itemstack);
+                    // CraftBukkit start
+                    org.bukkit.event.player.PlayerFishEvent playerFishEvent = new org.bukkit.event.player.PlayerFishEvent((org.bukkit.entity.Player) this.angler.getBukkitEntity(), entityitem.getBukkitEntity(), (org.bukkit.entity.Fish) this.getBukkitEntity(), org.bukkit.event.player.PlayerFishEvent.State.CAUGHT_FISH);
+                    playerFishEvent.setExpToDrop(this.rand.nextInt(6) + 1);
+                    this.world.getServer().getPluginManager().callEvent(playerFishEvent);
+                    if (playerFishEvent.isCancelled()) return 0;
+                    // CraftBukkit end
                     double d0 = this.angler.posX - this.posX;
                     double d1 = this.angler.posY - this.posY;
                     double d2 = this.angler.posZ - this.posZ;
@@ -538,7 +559,11 @@ public class EntityFishHook extends Entity
                     entityitem.motionY = d1 * 0.1D + (double)MathHelper.sqrt(d3) * 0.08D;
                     entityitem.motionZ = d2 * 0.1D;
                     this.world.spawnEntity(entityitem);
-                    this.angler.world.spawnEntity(new EntityXPOrb(this.angler.world, this.angler.posX, this.angler.posY + 0.5D, this.angler.posZ + 0.5D, this.rand.nextInt(6) + 1));
+                    // CraftBukkit start - this.random.nextInt(6) + 1 -> playerFishEvent.getExpToDrop()
+                    if (playerFishEvent.getExpToDrop() > 0) {
+                        this.angler.world.spawnEntity(new EntityXPOrb(this.angler.world, this.angler.posX, this.angler.posY + 0.5D, this.angler.posZ + 0.5D, playerFishEvent.getExpToDrop()));
+                    }
+                    // CraftBukkit end
                     Item item = itemstack.getItem();
 
                     if (item == Items.FISH || item == Items.COOKED_FISH)
@@ -552,8 +577,19 @@ public class EntityFishHook extends Entity
 
             if (this.inGround)
             {
+                // CraftBukkit start
+                org.bukkit.event.player.PlayerFishEvent playerFishEvent = new org.bukkit.event.player.PlayerFishEvent((org.bukkit.entity.Player) this.angler.getBukkitEntity(), null, (org.bukkit.entity.Fish) this.getBukkitEntity(), org.bukkit.event.player.PlayerFishEvent.State.IN_GROUND);
+                this.world.getServer().getPluginManager().callEvent(playerFishEvent);
+                if (playerFishEvent.isCancelled()) return 0;
+                // CraftBukkit end
                 i = 2;
             }
+            // CraftBukkit start
+            if (i == 0) {
+                org.bukkit.event.player.PlayerFishEvent playerFishEvent = new org.bukkit.event.player.PlayerFishEvent((org.bukkit.entity.Player) this.angler.getBukkitEntity(), null, (org.bukkit.entity.Fish) this.getBukkitEntity(), org.bukkit.event.player.PlayerFishEvent.State.FAILED_ATTEMPT);
+                this.world.getServer().getPluginManager().callEvent(playerFishEvent);
+                if (playerFishEvent.isCancelled()) return 0;
+            } // CraftBukkit end
 
             this.setDead();
             return event == null ? i : event.getRodDamage();

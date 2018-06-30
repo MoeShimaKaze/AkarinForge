@@ -99,7 +99,7 @@ public abstract class World implements IBlockAccess, net.minecraftforge.common.c
     protected List<IWorldEventListener> eventListeners;
     public IChunkProvider chunkProvider; // Akarin Forge - public
     protected final ISaveHandler saveHandler;
-    protected WorldInfo worldInfo;
+    public WorldInfo worldInfo; // Akarin Forge - public
     protected boolean findingSpawnPoint;
     protected MapStorage mapStorage;
     public VillageCollection villageCollection;

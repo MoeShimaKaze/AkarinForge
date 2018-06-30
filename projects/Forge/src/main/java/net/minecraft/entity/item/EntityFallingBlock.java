@@ -114,7 +114,7 @@ public class EntityFallingBlock extends Entity
             {
                 BlockPos blockpos = new BlockPos(this);
 
-                if (this.world.getBlockState(blockpos).getBlock() == block)
+                if (this.world.getBlockState(blockpos).getBlock() == block && !org.bukkit.craftbukkit.event.CraftEventFactory.callEntityChangeBlockEvent(this, blockpos, Blocks.AIR, 0).isCancelled()) // CraftBukkit
                 {
                     this.world.setBlockToAir(blockpos);
                 }
@@ -170,7 +170,7 @@ public class EntityFallingBlock extends Entity
                     if (!flag1 && BlockFalling.canFallThrough(this.world.getBlockState(new BlockPos(this.posX, this.posY - 0.009999999776482582D, this.posZ))))
                     {
                         this.onGround = false;
-                        return;
+                        // return; // CraftBukkit
                     }
 
                     this.motionX *= 0.699999988079071D;
@@ -183,8 +183,14 @@ public class EntityFallingBlock extends Entity
 
                         if (!this.dontSetBlock)
                         {
-                            if (this.world.mayPlace(block, blockpos1, true, EnumFacing.UP, (Entity)null) && (flag1 || !BlockFalling.canFallThrough(this.world.getBlockState(blockpos1.down()))) && this.world.setBlockState(blockpos1, this.fallTile, 3))
+                            if (this.world.mayPlace(block, blockpos1, true, EnumFacing.UP, (Entity)null) && (flag1 || !BlockFalling.canFallThrough(this.world.getBlockState(blockpos1.down()))))
                             {
+                                // CraftBukkit start
+                                if (org.bukkit.craftbukkit.event.CraftEventFactory.callEntityChangeBlockEvent(this, blockpos1, this.fallTile.getBlock(), this.fallTile.getBlock().getMetaFromState(this.fallTile)).isCancelled()) {
+                                    return;
+                                }
+                                this.world.setBlockState(blockpos1, this.fallTile, 3);
+                                // CraftBukkit end
                                 if (block instanceof BlockFalling)
                                 {
                                     ((BlockFalling)block).onEndFalling(this.world, blockpos1, this.fallTile, iblockstate);
@@ -248,7 +254,9 @@ public class EntityFallingBlock extends Entity
 
                 for (Entity entity : list)
                 {
+                    org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = this; // CraftBukkit
                     entity.attackEntityFrom(damagesource, (float)Math.min(MathHelper.floor((float)i * this.fallHurtAmount), this.fallHurtMax));
+                    org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = null; // CraftBukkit
                 }
 
                 if (flag && (double)this.rand.nextFloat() < 0.05000000074505806D + (double)i * 0.05D)

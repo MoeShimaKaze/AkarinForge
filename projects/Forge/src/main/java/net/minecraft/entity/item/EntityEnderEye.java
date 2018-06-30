@@ -14,11 +14,11 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class EntityEnderEye extends Entity
 {
-    private double targetX;
-    private double targetY;
-    private double targetZ;
-    private int despawnTimer;
-    private boolean shatterOrDrop;
+    public double targetX; // CraftBukkit private -> public
+    public double targetY; // CraftBukkit private -> public
+    public double targetZ; // CraftBukkit private -> public
+    public int despawnTimer; // CraftBukkit private -> public
+    public boolean shatterOrDrop; // CraftBukkit private -> public
 
     public EntityEnderEye(World worldIn)
     {

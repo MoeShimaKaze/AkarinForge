@@ -87,6 +87,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
     private float prevMouthOpenness;
     protected boolean canGallop = true;
     protected int gallopTime;
+    public int maxDomestication = 100; // CraftBukkit - store max domestication value
 
     public AbstractHorse(World worldIn)
     {
@@ -291,7 +292,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
     protected void initHorseChest()
     {
         ContainerHorseChest containerhorsechest = this.horseChest;
-        this.horseChest = new ContainerHorseChest("HorseChest", this.getInventorySize());
+        this.horseChest = new ContainerHorseChest("HorseChest", this.getInventorySize(), this); // CraftBukkit
         this.horseChest.setCustomName(this.getName());
 
         if (containerhorsechest != null)
@@ -465,7 +466,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
 
     public int getMaxTemper()
     {
-        return 100;
+        return this.maxDomestication; // CraftBukkit - return stored max domestication instead of 100
     }
 
     protected float getSoundVolume()
@@ -545,7 +546,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
 
         if (this.getHealth() < this.getMaxHealth() && f > 0.0F)
         {
-            this.heal(f);
+            this.heal(f, org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.EATING); // CraftBukkit
             flag = true;
         }
 
@@ -609,7 +610,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
 
     public void onDeath(DamageSource cause)
     {
-        super.onDeath(cause);
+        // super.onDeath(cause); // CraftBukkit - Moved down
 
         if (!this.world.isRemote && this.horseChest != null)
         {
@@ -623,6 +624,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
                 }
             }
         }
+        super.onDeath(cause); // CraftBukkit
     }
 
     public void onLivingUpdate()
@@ -638,7 +640,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
         {
             if (this.rand.nextInt(900) == 0 && this.deathTime == 0)
             {
-                this.heal(1.0F);
+                this.heal(1.0F, org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.REGEN); // CraftBukkit
             }
 
             if (this.canEatGrass())
@@ -941,6 +943,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
         {
             compound.setString("OwnerUUID", this.getOwnerUniqueId().toString());
         }
+        compound.setInteger("Bukkit.MaxDomestication", this.maxDomestication); // CraftBukkit
 
         if (!this.horseChest.getStackInSlot(0).isEmpty())
         {
@@ -971,6 +974,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
         {
             this.setOwnerUniqueId(UUID.fromString(s));
         }
+        if (compound.hasKey("Bukkit.MaxDomestication")) this.maxDomestication = compound.getInteger("Bukkit.MaxDomestication"); // CraftBukkit
 
         IAttributeInstance iattributeinstance = this.getAttributeMap().getAttributeInstanceByName("Speed");
 
@@ -1074,6 +1078,16 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
 
     public void handleStartJump(int p_184775_1_)
     {
+        // CraftBukkit start
+        float power;
+        if (p_184775_1_ >= 90) {
+            power = 1.0F;
+        } else {
+            power = 0.4F + 0.4F * (float) p_184775_1_ / 90.0F;
+        }
+        org.bukkit.event.entity.HorseJumpEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callHorseJumpEvent(this, power);
+        if (event.isCancelled()) return;
+        // CraftBukkit end
         this.allowStandSliding = true;
         this.makeHorseRear();
     }
