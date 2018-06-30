@@ -13,6 +13,26 @@ public class InventoryCraftResult implements IInventory
 {
     private final NonNullList<ItemStack> stackResult = NonNullList.<ItemStack>withSize(1, ItemStack.EMPTY);
     private IRecipe recipeUsed;
+    // CraftBukkit start
+    private int maxStack = MAX_STACK;
+    public java.util.List<ItemStack> getContents() {
+        return this.stackResult;
+    }
+    public org.bukkit.inventory.InventoryHolder getOwner() {
+        return null; // Result slots don't get an owner
+    }
+    // Don't need a transaction; the InventoryCrafting keeps track of it for us
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {}
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {}
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    }
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+    }
+    @Override public org.bukkit.Location getLocation() {
+        return null;
+    } // CraftBukkit end
 
     public int getSizeInventory()
     {
@@ -69,7 +89,7 @@ public class InventoryCraftResult implements IInventory
 
     public int getInventoryStackLimit()
     {
-        return 64;
+        return maxStack; // CraftBukkit
     }
 
     public void markDirty()

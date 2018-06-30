@@ -11,8 +11,12 @@ import net.minecraft.world.World;
 
 public class ShulkerBoxRecipes
 {
-    public static class ShulkerBoxColoring extends net.minecraftforge.registries.IForgeRegistryEntry.Impl<IRecipe> implements IRecipe
+    public static class ShulkerBoxColoring extends ShapelessRecipes implements IRecipe // CraftBukkit - added extends
         {
+            // CraftBukkit start - Delegate to new parent class with bogus info
+            public ShulkerBoxColoring() {
+                super("", new ItemStack(net.minecraft.init.Blocks.WHITE_SHULKER_BOX, 0, 0), NonNullList.from(Ingredient.EMPTY, Ingredient.fromItem(Items.DYE)));
+            } // CraftBukkit end
             public boolean matches(InventoryCrafting inv, World worldIn)
             {
                 int i = 0;

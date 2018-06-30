@@ -63,6 +63,13 @@ public class EntityBoat extends Entity
     private EntityBoat.Status status;
     private EntityBoat.Status previousStatus;
     private double lastYd;
+    // CraftBukkit start
+    public double maxSpeed = 0.4D;
+    public double occupiedDeceleration = 0.2D;
+    public double unoccupiedDeceleration = -1;
+    public boolean landBoats = false;
+    private org.bukkit.Location lastLocation;
+    // CraftBukkit end
 
     public EntityBoat(World worldIn)
     {
@@ -138,6 +145,13 @@ public class EntityBoat extends Entity
             }
             else
             {
+                // CraftBukkit start
+                org.bukkit.entity.Vehicle vehicle = (org.bukkit.entity.Vehicle) this.getBukkitEntity();
+                org.bukkit.entity.Entity attacker = (source.getTrueSource() == null) ? null : source.getTrueSource().getBukkitEntity();
+                org.bukkit.event.vehicle.VehicleDamageEvent event = new org.bukkit.event.vehicle.VehicleDamageEvent(vehicle, attacker, (double) amount);
+                this.world.getServer().getPluginManager().callEvent(event);
+                if (event.isCancelled()) return true;
+                // CraftBukkit end
                 this.setForwardDirection(-this.getForwardDirection());
                 this.setTimeSinceHit(10);
                 this.setDamageTaken(this.getDamageTaken() + amount * 10.0F);
@@ -146,6 +160,13 @@ public class EntityBoat extends Entity
 
                 if (flag || this.getDamageTaken() > 40.0F)
                 {
+                    // CraftBukkit start
+                    org.bukkit.event.vehicle.VehicleDestroyEvent destroyEvent = new org.bukkit.event.vehicle.VehicleDestroyEvent(vehicle, attacker);
+                    this.world.getServer().getPluginManager().callEvent(destroyEvent);
+                    if (destroyEvent.isCancelled()) {
+                        this.setDamageTaken(40F); // Maximize damage so this doesn't get triggered again right away
+                        return true;
+                    } // CraftBukkit end
                     if (!flag && this.world.getGameRules().getBoolean("doEntityDrops"))
                     {
                         this.dropItemWithOffset(this.getItemBoat(), 1, 0.0F);
@@ -169,11 +190,21 @@ public class EntityBoat extends Entity
         {
             if (entityIn.getEntityBoundingBox().minY < this.getEntityBoundingBox().maxY)
             {
+                // CraftBukkit start
+                org.bukkit.event.vehicle.VehicleEntityCollisionEvent event = new org.bukkit.event.vehicle.VehicleEntityCollisionEvent((org.bukkit.entity.Vehicle) this.getBukkitEntity(), entityIn.getBukkitEntity());
+                this.world.getServer().getPluginManager().callEvent(event);
+                if (event.isCancelled()) return;
+                // CraftBukkit end
                 super.applyEntityCollision(entityIn);
             }
         }
         else if (entityIn.getEntityBoundingBox().minY <= this.getEntityBoundingBox().minY)
         {
+            // CraftBukkit start
+            org.bukkit.event.vehicle.VehicleEntityCollisionEvent event = new org.bukkit.event.vehicle.VehicleEntityCollisionEvent((org.bukkit.entity.Vehicle) this.getBukkitEntity(), entityIn.getBukkitEntity());
+            this.world.getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) return;
+            // CraftBukkit end
             super.applyEntityCollision(entityIn);
         }
     }
@@ -285,6 +316,18 @@ public class EntityBoat extends Entity
             this.motionY = 0.0D;
             this.motionZ = 0.0D;
         }
+        // CraftBukkit start
+        org.bukkit.Server server = this.world.getServer();
+        org.bukkit.World bworld = this.world.getWorld();
+        org.bukkit.Location to = new org.bukkit.Location(bworld, this.posX, this.posY, this.posZ, this.rotationYaw, this.rotationPitch);
+        org.bukkit.entity.Vehicle vehicle = (org.bukkit.entity.Vehicle) this.getBukkitEntity();
+        server.getPluginManager().callEvent(new org.bukkit.event.vehicle.VehicleUpdateEvent(vehicle));
+        if (lastLocation != null && !lastLocation.equals(to)) {
+            org.bukkit.event.vehicle.VehicleMoveEvent event = new org.bukkit.event.vehicle.VehicleMoveEvent(vehicle, lastLocation, to);
+            server.getPluginManager().callEvent(event);
+        }
+        lastLocation = vehicle.getLocation();
+        // CraftBukkit end
 
         for (int i = 0; i <= 1; ++i)
         {
@@ -823,6 +866,11 @@ public class EntityBoat extends Entity
 
                     if (!this.world.isRemote && !this.isDead)
                     {
+                    // CraftBukkit start
+                    org.bukkit.entity.Vehicle vehicle = (org.bukkit.entity.Vehicle) this.getBukkitEntity();
+                    org.bukkit.event.vehicle.VehicleDestroyEvent destroyEvent = new org.bukkit.event.vehicle.VehicleDestroyEvent(vehicle, null);
+                    this.world.getServer().getPluginManager().callEvent(destroyEvent);
+                    if (!destroyEvent.isCancelled()) { // CraftBukkit end
                         this.setDead();
 
                         if (this.world.getGameRules().getBoolean("doEntityDrops"))
@@ -838,6 +886,7 @@ public class EntityBoat extends Entity
                             }
                         }
                     }
+                    } // CraftBukkit
                 }
 
                 this.fallDistance = 0.0F;

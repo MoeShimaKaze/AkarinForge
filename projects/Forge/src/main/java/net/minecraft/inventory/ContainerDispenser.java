@@ -1,15 +1,25 @@
 package net.minecraft.inventory;
 
+import org.bukkit.entity.HumanEntity;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
 public class ContainerDispenser extends Container
 {
     private final IInventory dispenserInventory;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity = null;
+    private net.minecraft.entity.player.InventoryPlayer inventoryPlayer;
+    // CraftBukkit end
 
     public ContainerDispenser(IInventory playerInventory, IInventory dispenserInventoryIn)
     {
         this.dispenserInventory = dispenserInventoryIn;
+        // CraftBukkit start - Save player
+        // TODO: Should we check to make sure it really is an InventoryPlayer?
+        this.inventoryPlayer = (net.minecraft.entity.player.InventoryPlayer) playerInventory;
+        // CraftBukkit end
 
         for (int i = 0; i < 3; ++i)
         {
@@ -35,8 +45,17 @@ public class ContainerDispenser extends Container
 
     public boolean canInteractWith(EntityPlayer playerIn)
     {
+        if (!this.checkReachable) return true; // CraftBukkit
         return this.dispenserInventory.isUsableByPlayer(playerIn);
     }
+    // CraftBukkit start
+    @Override
+    public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity;
+        org.bukkit.craftbukkit.inventory.CraftInventory inventory = new org.bukkit.craftbukkit.inventory.CraftInventory(this.dispenserInventory);
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((HumanEntity) this.inventoryPlayer.player.getBukkitEntity(), inventory, this); // Akarin Forge - FIXME
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index)
     {

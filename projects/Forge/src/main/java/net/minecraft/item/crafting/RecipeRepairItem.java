@@ -8,8 +8,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 
-public class RecipeRepairItem extends net.minecraftforge.registries.IForgeRegistryEntry.Impl<IRecipe> implements IRecipe
+public class RecipeRepairItem extends ShapelessRecipes implements IRecipe // CraftBukkit - added extends
 {
+    // CraftBukkit start - Delegate to new parent class
+    public RecipeRepairItem() {
+        super("", new ItemStack(net.minecraft.init.Items.LEATHER_HELMET), NonNullList.from(Ingredient.EMPTY, Ingredient.fromItem(net.minecraft.init.Items.LEATHER_HELMET)));
+    } // CraftBukkit end
     public boolean matches(InventoryCrafting inv, World worldIn)
     {
         List<ItemStack> list = Lists.<ItemStack>newArrayList();
@@ -79,7 +83,17 @@ public class RecipeRepairItem extends net.minecraftforge.registries.IForgeRegist
                     i1 = 0;
                 }
 
-                return new ItemStack(itemstack2.getItem(), 1, i1);
+                // CraftBukkit start - Construct a dummy repair recipe
+                ItemStack result = new ItemStack(itemstack3.getItem(), 1, i1);
+                NonNullList<Ingredient> ingredients = NonNullList.create();
+                ingredients.add(Ingredient.fromStacks(new ItemStack[]{itemstack2.copy()}));
+                ingredients.add(Ingredient.fromStacks(new ItemStack[]{itemstack3.copy()}));
+                ShapelessRecipes recipe = new ShapelessRecipes("", result.copy(), ingredients);
+                recipe.key = new net.minecraft.util.ResourceLocation("repairitem");
+                inv.currentRecipe = recipe;
+                result = org.bukkit.craftbukkit.event.CraftEventFactory.callPreCraftEvent(inv, result, inv.eventHandler.getBukkitView(), true);
+                return result;
+                // CraftBukkit end
             }
         }
 

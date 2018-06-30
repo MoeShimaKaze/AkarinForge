@@ -11,6 +11,17 @@ public class ContainerMerchant extends Container
     private final IMerchant merchant;
     private final InventoryMerchant merchantInventory;
     private final World world;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity = null;
+    private InventoryPlayer inventoryPlayer;
+
+    @Override
+    public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity == null) { // Akarin Forge - FIXME
+            bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((org.bukkit.entity.HumanEntity) this.inventoryPlayer.player.getBukkitEntity(), new org.bukkit.craftbukkit.inventory.CraftInventoryMerchant((InventoryMerchant) merchantInventory), this);
+        }
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ContainerMerchant(InventoryPlayer playerInventory, IMerchant merchant, World worldIn)
     {

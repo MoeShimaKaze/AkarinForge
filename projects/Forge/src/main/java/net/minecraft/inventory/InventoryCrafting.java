@@ -13,7 +13,46 @@ public class InventoryCrafting implements IInventory
     private final NonNullList<ItemStack> stackList;
     private final int inventoryWidth;
     private final int inventoryHeight;
-    private final Container eventHandler;
+    public final Container eventHandler; // Akarin Forge - public
+    // CraftBukkit start - add fields
+    public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    public net.minecraft.item.crafting.IRecipe currentRecipe;
+    public IInventory resultInventory;
+    private EntityPlayer owner;
+    private int maxStack = MAX_STACK;
+
+    public java.util.List<ItemStack> getContents() {
+        return this.stackList;
+    }
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public org.bukkit.event.inventory.InventoryType getInvType() {
+        return stackList.size() == 4 ? org.bukkit.event.inventory.InventoryType.CRAFTING : org.bukkit.event.inventory.InventoryType.WORKBENCH;
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public org.bukkit.inventory.InventoryHolder getOwner() {
+        return (owner == null) ? null : owner.getBukkitEntity();
+    }
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+        resultInventory.setMaxStackSize(size);
+    }
+    @Override
+    public org.bukkit.Location getLocation() {
+        return owner.getBukkitEntity().getLocation();
+    }
+
+    public InventoryCrafting(Container container, int i, int j, EntityPlayer player) {
+        this(container, i, j);
+        this.owner = player;
+    }
+    // CraftBukkit end
 
     public InventoryCrafting(Container eventHandlerIn, int width, int height)
     {
@@ -91,7 +130,7 @@ public class InventoryCrafting implements IInventory
 
     public int getInventoryStackLimit()
     {
-        return 64;
+        return maxStack; // Akarin Forge - fixes missing limit change
     }
 
     public void markDirty()

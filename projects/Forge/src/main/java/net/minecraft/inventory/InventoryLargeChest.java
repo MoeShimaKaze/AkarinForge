@@ -14,6 +14,39 @@ public class InventoryLargeChest implements ILockableContainer
     private final String name;
     private final ILockableContainer upperChest;
     private final ILockableContainer lowerChest;
+    // CraftBukkit start - add fields and methods
+    public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+
+    public java.util.List<ItemStack> getContents() {
+        java.util.List<ItemStack> result = new java.util.ArrayList<ItemStack>(this.getSizeInventory());
+        for (int i = 0; i < this.getSizeInventory(); i++) {
+            result.add(this.getStackInSlot(i));
+        }
+        return result;
+    }
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        this.upperChest.onOpen(who);
+        this.lowerChest.onOpen(who);
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        this.upperChest.onClose(who);
+        this.lowerChest.onClose(who);
+        transaction.remove(who);
+    }
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public org.bukkit.inventory.InventoryHolder getOwner() {
+        return null; // This method won't be called since CraftInventoryDoubleChest doesn't defer to here
+    }
+    public void setMaxStackSize(int size) {
+        this.upperChest.setMaxStackSize(size);
+        this.lowerChest.setMaxStackSize(size);
+    }
+    @Override public org.bukkit.Location getLocation() {
+        return upperChest.getLocation(); // TODO: right?
+    } // CraftBukkit end
 
     public InventoryLargeChest(String nameIn, ILockableContainer upperChestIn, ILockableContainer lowerChestIn)
     {
@@ -108,7 +141,7 @@ public class InventoryLargeChest implements ILockableContainer
 
     public int getInventoryStackLimit()
     {
-        return this.upperChest.getInventoryStackLimit();
+        return Math.min(this.upperChest.getInventoryStackLimit(), this.lowerChest.getInventoryStackLimit()); // CraftBukkit - check both sides
     }
 
     public void markDirty()

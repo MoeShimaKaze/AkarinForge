@@ -18,9 +18,41 @@ public class InventoryBasic implements IInventory
     private final NonNullList<ItemStack> inventoryContents;
     private List<IInventoryChangedListener> changeListeners;
     private boolean hasCustomName;
+    // CraftBukkit start - add fields and methods
+    public List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    private int maxStack = MAX_STACK;
+    protected org.bukkit.inventory.InventoryHolder bukkitOwner;
+
+    public List<ItemStack> getContents() {
+        return this.inventoryContents;
+    }
+
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public void setMaxStackSize(int i) {
+        maxStack = i;
+    }
+    public org.bukkit.inventory.InventoryHolder getOwner() {
+        return bukkitOwner;
+    }
+    @Override public org.bukkit.Location getLocation() {
+        return null;
+    }
 
     public InventoryBasic(String title, boolean customName, int slotCount)
     {
+        this(title, customName, slotCount, null);
+    }
+    public InventoryBasic(String title, boolean customName, int slotCount, org.bukkit.inventory.InventoryHolder owner) {
+        this.bukkitOwner = owner;
+        // CraftBukkit end
         this.inventoryTitle = title;
         this.hasCustomName = customName;
         this.slotsCount = slotCount;
@@ -175,7 +207,7 @@ public class InventoryBasic implements IInventory
 
     public int getInventoryStackLimit()
     {
-        return 64;
+        return maxStack; // Akarin Forge - fixes missing limit change
     }
 
     public void markDirty()

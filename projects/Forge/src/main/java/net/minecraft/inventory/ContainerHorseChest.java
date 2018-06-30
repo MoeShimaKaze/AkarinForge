@@ -6,9 +6,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ContainerHorseChest extends InventoryBasic
 {
-    public ContainerHorseChest(String inventoryTitle, int slotCount)
+    public ContainerHorseChest(String inventoryTitle, int slotCount, net.minecraft.entity.passive.AbstractHorse owner) // CraftBukkit
     {
-        super(inventoryTitle, false, slotCount);
+        super(inventoryTitle, false, slotCount, (org.bukkit.entity.AbstractHorse) owner.getBukkitEntity()); // CraftBukkit
     }
 
     @SideOnly(Side.CLIENT)

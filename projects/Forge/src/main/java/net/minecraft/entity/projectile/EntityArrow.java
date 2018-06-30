@@ -47,9 +47,9 @@ public abstract class EntityArrow extends Entity implements IProjectile
         }
     });
     private static final DataParameter<Byte> CRITICAL = EntityDataManager.<Byte>createKey(EntityArrow.class, DataSerializers.BYTE);
-    private int xTile;
-    private int yTile;
-    private int zTile;
+    public int xTile; // CraftBukkit - private -> public
+    public int yTile; // CraftBukkit - private -> public
+    public int zTile; // CraftBukkit - private -> public
     private Block inTile;
     private int inData;
     protected boolean inGround;
@@ -83,6 +83,7 @@ public abstract class EntityArrow extends Entity implements IProjectile
     {
         this(worldIn, shooter.posX, shooter.posY + (double)shooter.getEyeHeight() - 0.10000000149011612D, shooter.posZ);
         this.shootingEntity = shooter;
+        this.projectileSource = (org.bukkit.entity.LivingEntity) shooter.getBukkitEntity(); // CraftBukkit
 
         if (shooter instanceof EntityPlayer)
         {
@@ -339,6 +340,7 @@ public abstract class EntityArrow extends Entity implements IProjectile
     protected void onHit(RayTraceResult raytraceResultIn)
     {
         Entity entity = raytraceResultIn.entityHit;
+        org.bukkit.craftbukkit.event.CraftEventFactory.callProjectileHitEvent(this, raytraceResultIn); // CraftBukkit - Call event
 
         if (entity != null)
         {
@@ -363,7 +365,11 @@ public abstract class EntityArrow extends Entity implements IProjectile
 
             if (this.isBurning() && !(entity instanceof EntityEnderman))
             {
-                entity.setFire(5);
+                // CraftBukkit start
+                org.bukkit.event.entity.EntityCombustByEntityEvent combustEvent = new org.bukkit.event.entity.EntityCombustByEntityEvent(this.getBukkitEntity(), entity.getBukkitEntity(), 5);
+                org.bukkit.Bukkit.getPluginManager().callEvent(combustEvent);
+                if (!combustEvent.isCancelled()) entity.setFire(combustEvent.getDuration());
+                // CraftBukkit end
             }
 
             if (entity.attackEntityFrom(damagesource, (float)i))
@@ -570,9 +576,17 @@ public abstract class EntityArrow extends Entity implements IProjectile
     {
         if (!this.world.isRemote && this.inGround && this.arrowShake <= 0)
         {
+            // CraftBukkit start
+            ItemStack itemstack = this.getArrowStack(); // PAIL: rename
+            net.minecraft.entity.item.EntityItem item = new net.minecraft.entity.item.EntityItem(this.world, this.posX, this.posY, this.posZ, itemstack);
+            if (this.pickupStatus == PickupStatus.ALLOWED && entityIn.inventory.canHold(itemstack) > 0) {
+                org.bukkit.event.player.PlayerPickupArrowEvent event = new org.bukkit.event.player.PlayerPickupArrowEvent((org.bukkit.entity.Player) entityIn.getBukkitEntity(), new org.bukkit.craftbukkit.entity.CraftItem(this.world.getServer(), this, item), (org.bukkit.entity.Arrow) this.getBukkitEntity());
+                this.world.getServer().getPluginManager().callEvent(event);
+                if (event.isCancelled()) return;
+            } // CraftBukkit end
             boolean flag = this.pickupStatus == EntityArrow.PickupStatus.ALLOWED || this.pickupStatus == EntityArrow.PickupStatus.CREATIVE_ONLY && entityIn.capabilities.isCreativeMode;
 
-            if (this.pickupStatus == EntityArrow.PickupStatus.ALLOWED && !entityIn.inventory.addItemStackToInventory(this.getArrowStack()))
+            if (this.pickupStatus == EntityArrow.PickupStatus.ALLOWED && !entityIn.inventory.addItemStackToInventory(this.getItem())) // CraftBukkit end
             {
                 flag = false;
             }
@@ -655,7 +669,11 @@ public abstract class EntityArrow extends Entity implements IProjectile
 
         if (EnchantmentHelper.getMaxEnchantmentLevel(Enchantments.FLAME, p_190547_1_) > 0)
         {
-            this.setFire(100);
+            // CraftBukkit start - call EntityCombustEvent
+            org.bukkit.event.entity.EntityCombustEvent event = new org.bukkit.event.entity.EntityCombustEvent(this.getBukkitEntity(), 100);
+            this.world.getServer().getPluginManager().callEvent(event);
+            if (!event.isCancelled()) this.setFire(event.getDuration());
+            // CraftBukkit end
         }
     }
 

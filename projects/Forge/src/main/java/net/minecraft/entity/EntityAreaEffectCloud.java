@@ -44,6 +44,19 @@ public class EntityAreaEffectCloud extends Entity
     private float radiusPerTick;
     private EntityLivingBase owner;
     private UUID ownerUniqueId;
+    // CraftBukkit start accessor methods
+    public void refreshEffects() {
+        if (!this.colorSet) {
+            this.getDataManager().set(EntityAreaEffectCloud.COLOR, Integer.valueOf(PotionUtils.getPotionColorFromEffectList((java.util.Collection) PotionUtils.mergeEffects(this.potion, (java.util.Collection) this.effects)))); // PAIL: rename
+        }
+    }
+    public String getType() {
+        return ((ResourceLocation) PotionType.REGISTRY.getNameForObject(this.potion)).toString(); // PAIL: rename
+    }
+    public void setType(String string) {
+        setPotion(PotionType.REGISTRY.getObject(new ResourceLocation(string))); // PAIL: rename
+    }
+    // CraftBukkit end
 
     public EntityAreaEffectCloud(World worldIn)
     {
@@ -326,6 +339,7 @@ public class EntityAreaEffectCloud extends Entity
 
                     if (!list.isEmpty())
                     {
+                        List<org.bukkit.entity.LivingEntity> entities = new java.util.ArrayList<org.bukkit.entity.LivingEntity>(); // CraftBukkit
                         for (EntityLivingBase entitylivingbase : list)
                         {
                             if (!this.reapplicationDelayMap.containsKey(entitylivingbase) && entitylivingbase.canBeHitWithPotion())
@@ -336,6 +350,17 @@ public class EntityAreaEffectCloud extends Entity
 
                                 if (d2 <= (double)(f * f))
                                 {
+                                    // CraftBukkit start
+                                    entities.add((org.bukkit.entity.LivingEntity) entitylivingbase.getBukkitEntity());
+                                }
+                            }
+                        }
+                        org.bukkit.event.entity.AreaEffectCloudApplyEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callAreaEffectCloudApplyEvent(this, entities);
+                        if (true) { // Preserve NMS spacing and bracket count for smallest diff
+                            for (org.bukkit.entity.LivingEntity entity : event.getAffectedEntities()) {
+                                if (entity instanceof org.bukkit.craftbukkit.entity.CraftLivingEntity) {
+                                    EntityLivingBase entitylivingbase = ((org.bukkit.craftbukkit.entity.CraftLivingEntity) entity).getHandle();
+                                    // CraftBukkit end
                                     this.reapplicationDelayMap.put(entitylivingbase, Integer.valueOf(this.ticksExisted + this.reapplicationDelay));
 
                                     for (PotionEffect potioneffect : potions)

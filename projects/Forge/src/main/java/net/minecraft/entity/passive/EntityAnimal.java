@@ -24,6 +24,7 @@ public abstract class EntityAnimal extends EntityAgeable implements IAnimals
     protected Block spawnableBlock = Blocks.GRASS;
     private int inLove;
     private UUID playerInLove;
+    public ItemStack breedItem; // CraftBukkit - Add breedItem variable
 
     public EntityAnimal(World worldIn)
     {
@@ -173,6 +174,7 @@ public abstract class EntityAnimal extends EntityAgeable implements IAnimals
         {
             this.playerInLove = player.getUniqueID();
         }
+        this.breedItem = player.inventory.getCurrentItem(); // CraftBukkit
 
         this.world.setEntityState(this, (byte)18);
     }

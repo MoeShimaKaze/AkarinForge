@@ -57,7 +57,8 @@ public class EntityEgg extends EntityThrowable
 
         if (!this.world.isRemote)
         {
-            if (this.rand.nextInt(8) == 0)
+            boolean hatching = this.rand.nextInt(8) == 0; // CraftBukkit
+            if (true) // CraftBukkit
             {
                 int i = 1;
 
@@ -66,13 +67,27 @@ public class EntityEgg extends EntityThrowable
                     i = 4;
                 }
 
-                for (int j = 0; j < i; ++j)
-                {
-                    EntityChicken entitychicken = new EntityChicken(this.world);
-                    entitychicken.setGrowingAge(-24000);
-                    entitychicken.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, 0.0F);
-                    this.world.spawnEntity(entitychicken);
+                // CraftBukkit start
+                if (!hatching) i = 0;
+                org.bukkit.entity.EntityType hatchingType = org.bukkit.entity.EntityType.CHICKEN;
+
+                net.minecraft.entity.Entity shooter = this.getThrower();
+                if (shooter instanceof net.minecraft.entity.player.EntityPlayerMP) {
+                    org.bukkit.event.player.PlayerEggThrowEvent event = new org.bukkit.event.player.PlayerEggThrowEvent((org.bukkit.entity.Player) shooter.getBukkitEntity(), (org.bukkit.entity.Egg) this.getBukkitEntity(), hatching, (byte) i, hatchingType);
+                    this.world.getServer().getPluginManager().callEvent(event);
+                    i = event.getNumHatches();
+                    hatching = event.isHatching();
+                    hatchingType = event.getHatchingType();
                 }
+                if (hatching) {
+                    for (int l = 0; l < i; ++l) {
+                        net.minecraft.entity.Entity entity = world.getWorld().createEntity(new org.bukkit.Location(world.getWorld(), this.posX, this.posY, this.posZ, this.rotationYaw, 0.0F), hatchingType.getEntityClass());
+                        if (entity.getBukkitEntity() instanceof org.bukkit.entity.Ageable) {
+                            ((org.bukkit.entity.Ageable) entity.getBukkitEntity()).setBaby();
+                        }
+                        world.getWorld().addEntity(entity, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.EGG);
+                    }
+                } // CraftBukkit end
             }
 
             this.world.setEntityState(this, (byte)3);

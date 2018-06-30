@@ -42,7 +42,7 @@ public class EnchantmentThorns extends Enchantment
         Random random = user.getRNG();
         ItemStack itemstack = EnchantmentHelper.getEnchantedItem(Enchantments.THORNS, user);
 
-        if (shouldHit(level, random))
+        if (attacker != null && shouldHit(level, random)) // CraftBukkit
         {
             if (attacker != null)
             {

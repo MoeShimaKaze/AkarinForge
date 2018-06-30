@@ -1,5 +1,7 @@
 package net.minecraft.inventory;
 
+import org.bukkit.entity.HumanEntity;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
@@ -7,6 +9,24 @@ public class ContainerChest extends Container
 {
     private final IInventory lowerChestInventory;
     private final int numRows;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity = null;
+    private net.minecraft.entity.player.InventoryPlayer inventoryPlayer;
+
+    @Override public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity;
+        org.bukkit.craftbukkit.inventory.CraftInventory inventory;
+        if (this.lowerChestInventory instanceof net.minecraft.entity.player.InventoryPlayer) {
+            inventory = new org.bukkit.craftbukkit.inventory.CraftInventoryPlayer((net.minecraft.entity.player.InventoryPlayer) this.lowerChestInventory);
+        } else if (this.lowerChestInventory instanceof InventoryLargeChest) {
+            inventory = new org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest((InventoryLargeChest) this.lowerChestInventory);
+        } else {
+            inventory = new org.bukkit.craftbukkit.inventory.CraftInventory(this.lowerChestInventory);
+        }
+
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((HumanEntity) this.inventoryPlayer.player.getBukkitEntity(), inventory, this); // Akarin Forge - FIXME
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ContainerChest(IInventory playerInventory, IInventory chestInventory, EntityPlayer player)
     {
@@ -14,6 +34,10 @@ public class ContainerChest extends Container
         this.numRows = chestInventory.getSizeInventory() / 9;
         chestInventory.openInventory(player);
         int i = (this.numRows - 4) * 18;
+        // CraftBukkit start - Save player
+        // TODO: Should we check to make sure it really is an InventoryPlayer?
+        this.inventoryPlayer = (net.minecraft.entity.player.InventoryPlayer) playerInventory;
+        // CraftBukkit end
 
         for (int j = 0; j < this.numRows; ++j)
         {
@@ -39,6 +63,7 @@ public class ContainerChest extends Container
 
     public boolean canInteractWith(EntityPlayer playerIn)
     {
+        if (!this.checkReachable) return true; // CraftBukkit
         return this.lowerChestInventory.isUsableByPlayer(playerIn);
     }
 

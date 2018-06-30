@@ -12,6 +12,14 @@ public class ContainerHorseInventory extends Container
 {
     private final IInventory horseInventory;
     private final AbstractHorse horse;
+    // CraftBukkit start
+    org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity;
+    net.minecraft.entity.player.InventoryPlayer inventoryPlayer;
+
+    @Override public org.bukkit.inventory.InventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity; // Akarin Forge - FIXME
+        return bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((org.bukkit.entity.HumanEntity) inventoryPlayer.player.getBukkitEntity(), horseInventory.getOwner().getInventory(), this);
+    } // CraftBukkit end
 
     public ContainerHorseInventory(IInventory playerInventory, IInventory horseInventoryIn, final AbstractHorse horse, EntityPlayer player)
     {

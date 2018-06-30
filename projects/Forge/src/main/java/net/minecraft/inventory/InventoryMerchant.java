@@ -17,6 +17,31 @@ public class InventoryMerchant implements IInventory
     private final EntityPlayer player;
     private MerchantRecipe currentRecipe;
     private int currentRecipeIndex;
+    // CraftBukkit start - add fields and methods
+    public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    private int maxStack = MAX_STACK;
+
+    public java.util.List<ItemStack> getContents() {
+        return this.slots;
+    }
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public void setMaxStackSize(int i) {
+        maxStack = i;
+    }
+    public org.bukkit.inventory.InventoryHolder getOwner() {
+        return (merchant instanceof net.minecraft.entity.passive.EntityVillager) ? (org.bukkit.craftbukkit.entity.CraftVillager) ((net.minecraft.entity.passive.EntityVillager) this.merchant).getBukkitEntity() : null;
+    }
+    @Override public org.bukkit.Location getLocation() {
+        return (merchant instanceof net.minecraft.entity.passive.EntityVillager) ? ((net.minecraft.entity.passive.EntityVillager) this.merchant).getBukkitEntity().getLocation() : null;
+    } // CraftBukkit end
 
     public InventoryMerchant(EntityPlayer thePlayerIn, IMerchant theMerchantIn)
     {
@@ -110,7 +135,7 @@ public class InventoryMerchant implements IInventory
 
     public int getInventoryStackLimit()
     {
-        return 64;
+        return maxStack; // CraftBukkit
     }
 
     public boolean isUsableByPlayer(EntityPlayer player)

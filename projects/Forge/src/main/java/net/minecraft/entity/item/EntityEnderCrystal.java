@@ -62,7 +62,10 @@ public class EntityEnderCrystal extends Entity
 
             if (this.world.provider instanceof WorldProviderEnd && this.world.getBlockState(blockpos).getBlock() != Blocks.FIRE)
             {
-                this.world.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+                // CraftBukkit start
+                if (!org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(this.world, blockpos.getX(), blockpos.getY(), blockpos.getZ(), this).isCancelled()) {
+                    this.world.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+                } // CraftBukkit end
             }
         }
     }
@@ -109,13 +112,22 @@ public class EntityEnderCrystal extends Entity
         {
             if (!this.isDead && !this.world.isRemote)
             {
+                if (org.bukkit.craftbukkit.event.CraftEventFactory.handleNonLivingEntityDamageEvent(this, source, amount)) return false; // CraftBukkit - All non-living entities need this
                 this.setDead();
 
                 if (!this.world.isRemote)
                 {
                     if (!source.isExplosion())
                     {
-                        this.world.createExplosion((Entity)null, this.posX, this.posY, this.posZ, 6.0F, true);
+                        // CraftBukkit start
+                        org.bukkit.event.entity.ExplosionPrimeEvent event = new org.bukkit.event.entity.ExplosionPrimeEvent(this.getBukkitEntity(), 6.0F, true);
+                        this.world.getServer().getPluginManager().callEvent(event);
+                        if (event.isCancelled()) {
+                            this.isDead = false;
+                            return false;
+                        }
+                        this.world.createExplosion(this, this.posX, this.posY, this.posZ, event.getRadius(), event.getFire());
+                        // CraftBukkit end
                     }
 
                     this.onCrystalDestroyed(source);

@@ -10,9 +10,18 @@ public class InventoryEnderChest extends InventoryBasic
 {
     private TileEntityEnderChest associatedChest;
 
-    public InventoryEnderChest()
+    // CraftBukkit start
+    private final EntityPlayer owner;
+    public org.bukkit.inventory.InventoryHolder getBukkitOwner() {
+        return owner.getBukkitEntity();
+    }
+    @Override public org.bukkit.Location getLocation() {
+        return new org.bukkit.Location(this.associatedChest.getWorld().getWorld(), this.associatedChest.getPos().getX(), this.associatedChest.getPos().getY(), this.associatedChest.getPos().getZ());
+    }
+    public InventoryEnderChest(EntityPlayer owner) // CraftBukkit end
     {
         super("container.enderchest", false, 27);
+        this.owner = owner; // CraftBukkit
     }
 
     public void setChestTileEntity(TileEntityEnderChest chestTileEntity)

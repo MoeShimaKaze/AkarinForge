@@ -7,6 +7,16 @@ import net.minecraft.item.ItemStack;
 public class ContainerHopper extends Container
 {
     private final IInventory hopperInventory;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity = null;
+    private InventoryPlayer inventoryPlayer;
+
+    @Override public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity;
+        org.bukkit.craftbukkit.inventory.CraftInventory inventory = new org.bukkit.craftbukkit.inventory.CraftInventory(this.hopperInventory);
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((org.bukkit.entity.HumanEntity) this.inventoryPlayer.player.getBukkitEntity(), inventory, this); // Akarin Forge - FIXME
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ContainerHopper(InventoryPlayer playerInventory, IInventory hopperInventoryIn, EntityPlayer player)
     {

@@ -557,6 +557,10 @@ public class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO
     @Nullable
     public static Entity readWorldEntityPos(NBTTagCompound compound, World worldIn, double x, double y, double z, boolean attemptSpawn)
     {
+        return spawnEntity(compound, worldIn, x, y, z, attemptSpawn, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.DEFAULT);
+    }
+    public static Entity spawnEntity(NBTTagCompound compound, World worldIn, double x, double y, double z, boolean attemptSpawn, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason) {
+        // CraftBukkit end
         Entity entity = createEntityFromNBT(compound, worldIn);
 
         if (entity == null)
@@ -567,7 +571,7 @@ public class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO
         {
             entity.setLocationAndAngles(x, y, z, entity.rotationYaw, entity.rotationPitch);
 
-            if (attemptSpawn && !worldIn.spawnEntity(entity))
+            if (attemptSpawn && !worldIn.addEntity(entity, spawnReason)) // CraftBukkit
             {
                 return null;
             }
@@ -608,7 +612,10 @@ public class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO
 
     public static void spawnEntity(Entity entityIn, World worldIn)
     {
-        if (worldIn.spawnEntity(entityIn) && entityIn.isBeingRidden())
+        addEntity(entityIn, worldIn, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.DEFAULT);
+    }
+    public static void addEntity(Entity entityIn, World worldIn, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason reason) {
+        if (worldIn.addEntity(entityIn, reason) && entityIn.isBeingRidden()) // CraftBukkit end
         {
             for (Entity entity : entityIn.getPassengers())
             {

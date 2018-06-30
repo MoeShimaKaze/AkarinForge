@@ -15,6 +15,16 @@ public class ContainerFurnace extends Container
     private int totalCookTime;
     private int furnaceBurnTime;
     private int currentItemBurnTime;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity = null;
+    private InventoryPlayer inventoryPlayer;
+
+    @Override public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity;
+        org.bukkit.craftbukkit.inventory.CraftInventoryFurnace inventory = new org.bukkit.craftbukkit.inventory.CraftInventoryFurnace((TileEntityFurnace) this.tileFurnace);
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((org.bukkit.entity.HumanEntity) this.inventoryPlayer.player.getBukkitEntity(), inventory, this); // Akarin Forge - FIXME
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ContainerFurnace(InventoryPlayer playerInventory, IInventory furnaceInventory)
     {
@@ -22,6 +32,7 @@ public class ContainerFurnace extends Container
         this.addSlotToContainer(new Slot(furnaceInventory, 0, 56, 17));
         this.addSlotToContainer(new SlotFurnaceFuel(furnaceInventory, 1, 56, 53));
         this.addSlotToContainer(new SlotFurnaceOutput(playerInventory.player, furnaceInventory, 2, 116, 35));
+        this.inventoryPlayer = playerInventory; // CraftBukkit - save player
 
         for (int i = 0; i < 3; ++i)
         {
@@ -86,6 +97,7 @@ public class ContainerFurnace extends Container
 
     public boolean canInteractWith(EntityPlayer playerIn)
     {
+        if (!this.checkReachable) return true; // CraftBukkit
         return this.tileFurnace.isUsableByPlayer(playerIn);
     }
 

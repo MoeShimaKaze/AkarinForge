@@ -95,16 +95,22 @@ public class EntityCow extends EntityAnimal
 
         if (itemstack.getItem() == Items.BUCKET && !player.capabilities.isCreativeMode && !this.isChild())
         {
+            // CraftBukkit start - Got milk?
+            org.bukkit.Location loc = this.getBukkitEntity().getLocation();
+            org.bukkit.event.player.PlayerBucketFillEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerBucketFillEvent(player, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), null, itemstack, Items.MILK_BUCKET);
+            if (event.isCancelled()) return false;
+            ItemStack result = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItemStack());
+            // CraftBukkit end
             player.playSound(SoundEvents.ENTITY_COW_MILK, 1.0F, 1.0F);
             itemstack.shrink(1);
 
             if (itemstack.isEmpty())
             {
-                player.setHeldItem(hand, new ItemStack(Items.MILK_BUCKET));
+                player.setHeldItem(hand, result); // CraftBukkit
             }
-            else if (!player.inventory.addItemStackToInventory(new ItemStack(Items.MILK_BUCKET)))
+            else if (!player.inventory.addItemStackToInventory(result)) // CraftBukkit
             {
-                player.dropItem(new ItemStack(Items.MILK_BUCKET), false);
+                player.dropItem(result, false); // CraftBukkit
             }
 
             return true;

@@ -9,14 +9,30 @@ import net.minecraft.world.World;
 
 public class ContainerWorkbench extends Container
 {
-    public InventoryCrafting craftMatrix = new InventoryCrafting(this, 3, 3);
-    public InventoryCraftResult craftResult = new InventoryCraftResult();
+    public InventoryCrafting craftMatrix; // CraftBukkit - move initialization into constructor
+    public InventoryCraftResult craftResult; // CraftBukkit - move initialization into constructor
     private final World world;
     private final BlockPos pos;
     private final EntityPlayer player;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity = null;
+    private InventoryPlayer inventoryPlayer;
+    
+    @Override public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity;
+        org.bukkit.craftbukkit.inventory.CraftInventoryCrafting inventory = new org.bukkit.craftbukkit.inventory.CraftInventoryCrafting(this.craftMatrix, this.craftResult);
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((org.bukkit.entity.HumanEntity) this.inventoryPlayer.player.getBukkitEntity(), inventory, this); // Akarin Forge - FIXME
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ContainerWorkbench(InventoryPlayer playerInventory, World worldIn, BlockPos posIn)
     {
+        // CraftBukkit start - Switched order of IInventory construction and stored player
+        this.craftResult = new InventoryCraftResult();
+        this.craftMatrix = new InventoryCrafting(this, 3, 3, playerInventory.player); // CraftBukkit - pass player
+        this.craftMatrix.resultInventory = this.craftResult;
+        this.inventoryPlayer = playerInventory;
+        // CraftBukkit end
         this.world = worldIn;
         this.pos = posIn;
         this.player = playerInventory.player;
@@ -61,6 +77,7 @@ public class ContainerWorkbench extends Container
 
     public boolean canInteractWith(EntityPlayer playerIn)
     {
+        if (!this.checkReachable) return true; // CraftBukkit
         if (this.world.getBlockState(this.pos).getBlock() != Blocks.CRAFTING_TABLE)
         {
             return false;

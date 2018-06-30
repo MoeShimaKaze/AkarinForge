@@ -11,9 +11,14 @@ public class ContainerBeacon extends Container
 {
     private final IInventory tileBeacon;
     private final ContainerBeacon.BeaconSlot beaconSlot;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity = null;
+    private net.minecraft.entity.player.InventoryPlayer inventoryPlayer;
+    // CraftBukkit end
 
     public ContainerBeacon(IInventory playerInventory, IInventory tileBeaconIn)
     {
+        inventoryPlayer = (net.minecraft.entity.player.InventoryPlayer) playerInventory; // CraftBukkit - TODO: check this
         this.tileBeacon = tileBeaconIn;
         this.beaconSlot = new ContainerBeacon.BeaconSlot(tileBeaconIn, 0, 136, 110);
         this.addSlotToContainer(this.beaconSlot);
@@ -68,8 +73,16 @@ public class ContainerBeacon extends Container
 
     public boolean canInteractWith(EntityPlayer playerIn)
     {
+        if (!this.checkReachable) return true; // CraftBukkit
         return this.tileBeacon.isUsableByPlayer(playerIn);
     }
+    // CraftBukkit start
+    @Override public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity;
+        org.bukkit.craftbukkit.inventory.CraftInventory inventory = new org.bukkit.craftbukkit.inventory.CraftInventoryBeacon((net.minecraft.tileentity.TileEntityBeacon) this.tileBeacon); // TODO - check this
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView(this.player.player.getBukkitEntity(), inventory, this);
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index)
     {

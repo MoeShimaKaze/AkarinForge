@@ -93,6 +93,7 @@ public abstract class EntityCreature extends EntityLiving
             {
                 if (f > 10.0F)
                 {
+                    this.world.getServer().getPluginManager().callEvent(new org.bukkit.event.entity.EntityUnleashEvent(this.getBukkitEntity(), org.bukkit.event.entity.EntityUnleashEvent.UnleashReason.DISTANCE)); // CraftBukkit
                     this.clearLeashed(true, true);
                 }
 
@@ -103,6 +104,7 @@ public abstract class EntityCreature extends EntityLiving
 
             if (f > 10.0F)
             {
+                this.world.getServer().getPluginManager().callEvent(new org.bukkit.event.entity.EntityUnleashEvent(this.getBukkitEntity(), org.bukkit.event.entity.EntityUnleashEvent.UnleashReason.DISTANCE)); // CraftBukkit
                 this.clearLeashed(true, true);
                 this.tasks.disableControlFlag(1);
             }

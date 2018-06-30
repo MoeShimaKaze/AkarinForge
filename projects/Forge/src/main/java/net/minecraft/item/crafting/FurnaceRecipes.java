@@ -17,6 +17,13 @@ public class FurnaceRecipes
     private static final FurnaceRecipes SMELTING_BASE = new FurnaceRecipes();
     private final Map<ItemStack, ItemStack> smeltingList = Maps.<ItemStack, ItemStack>newHashMap();
     private final Map<ItemStack, Float> experienceList = Maps.<ItemStack, Float>newHashMap();
+    // CraftBukkit start - add method
+    public Map<ItemStack,ItemStack> customRecipes = Maps.newHashMap();
+    public Map<ItemStack,Float> customExperience = Maps.newHashMap();
+    public void registerRecipe(ItemStack itemstack, ItemStack itemstack1, float f) {
+        this.customRecipes.put(itemstack, itemstack1);
+        this.customExperience.put(itemstack, f);
+    } // CraftBukkit end
 
     public static FurnaceRecipes instance()
     {
@@ -120,6 +127,10 @@ public class FurnaceRecipes
 
     public ItemStack getSmeltingResult(ItemStack stack)
     {
+        // CraftBukkit start
+        for (Entry<ItemStack, ItemStack> entry : this.customRecipes.entrySet()) {
+            if (this.compareItemStacks(stack, entry.getKey())) return entry.getValue();
+        } // CraftBukkit end
         for (Entry<ItemStack, ItemStack> entry : this.smeltingList.entrySet())
         {
             if (this.compareItemStacks(stack, entry.getKey()))
@@ -146,6 +157,10 @@ public class FurnaceRecipes
         float ret = stack.getItem().getSmeltingExperience(stack);
         if (ret != -1) return ret;
 
+        // CraftBukkit start
+        for (Entry<ItemStack, Float> entry : this.customExperience.entrySet()) {
+            if (this.compareItemStacks(stack, entry.getKey())) return entry.getValue().floatValue();
+        } // CraftBukkit end
         for (Entry<ItemStack, Float> entry : this.experienceList.entrySet())
         {
             if (this.compareItemStacks(stack, entry.getKey()))

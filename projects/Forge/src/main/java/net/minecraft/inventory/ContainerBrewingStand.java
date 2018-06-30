@@ -1,5 +1,7 @@
 package net.minecraft.inventory;
 
+import org.bukkit.entity.HumanEntity;
+
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -19,9 +21,14 @@ public class ContainerBrewingStand extends Container
     private final Slot slot;
     private int prevBrewTime;
     private int prevFuel;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity = null;
+    private InventoryPlayer inventoryPlayer;
+    // CraftBukkit end
 
     public ContainerBrewingStand(InventoryPlayer playerInventory, IInventory tileBrewingStandIn)
     {
+        inventoryPlayer = playerInventory; // CraftBukkit
         this.tileBrewingStand = tileBrewingStandIn;
         this.addSlotToContainer(new ContainerBrewingStand.Potion(tileBrewingStandIn, 0, 56, 51));
         this.addSlotToContainer(new ContainerBrewingStand.Potion(tileBrewingStandIn, 1, 79, 58));
@@ -80,8 +87,16 @@ public class ContainerBrewingStand extends Container
 
     public boolean canInteractWith(EntityPlayer playerIn)
     {
+        if (!this.checkReachable) return true; // CraftBukkit
         return this.tileBrewingStand.isUsableByPlayer(playerIn);
     }
+    // CraftBukkit start
+    @Override public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity;
+        org.bukkit.craftbukkit.inventory.CraftInventoryBrewer inventory = new org.bukkit.craftbukkit.inventory.CraftInventoryBrewer(this.tileBrewingStand);
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((HumanEntity) this.inventoryPlayer.player.getBukkitEntity(), inventory, this); // Akarin Forge - FIXME
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index)
     {

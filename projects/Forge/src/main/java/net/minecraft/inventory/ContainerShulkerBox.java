@@ -7,10 +7,20 @@ import net.minecraft.item.ItemStack;
 public class ContainerShulkerBox extends Container
 {
     private final IInventory inventory;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftInventoryView bukkitEntity;
+    private InventoryPlayer inventoryPlayer;
+
+    @Override public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
+        if (bukkitEntity != null) return bukkitEntity; // Akarin Forge - FIXME
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView((org.bukkit.entity.HumanEntity) this.inventoryPlayer.player.getBukkitEntity(), new org.bukkit.craftbukkit.inventory.CraftInventory(this.inventory), this);
+        return bukkitEntity;
+    } // CraftBukkit end
 
     public ContainerShulkerBox(InventoryPlayer p_i47266_1_, IInventory p_i47266_2_, EntityPlayer p_i47266_3_)
     {
         this.inventory = p_i47266_2_;
+        this.inventoryPlayer = p_i47266_1_; // CraftBukkit - save player
         p_i47266_2_.openInventory(p_i47266_3_);
         int i = 3;
         int j = 9;
