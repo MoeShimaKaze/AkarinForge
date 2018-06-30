@@ -37,6 +37,7 @@ public class EntityZombieVillager extends EntityZombie
     private static final DataParameter<Integer> PROFESSION = EntityDataManager.<Integer>createKey(EntityZombieVillager.class, DataSerializers.VARINT);
     private int conversionTime;
     private UUID converstionStarter;
+    private int lastTick = net.minecraft.server.MinecraftServer.currentTick; // CraftBukkit - add field
 
     public EntityZombieVillager(World worldIn)
     {
@@ -110,6 +111,11 @@ public class EntityZombieVillager extends EntityZombie
         if (!this.world.isRemote && this.isConverting())
         {
             int i = this.getConversionProgress();
+            // CraftBukkit start - Use wall time instead of ticks for villager conversion
+            int elapsedTicks = net.minecraft.server.MinecraftServer.currentTick - this.lastTick;
+            this.lastTick = net.minecraft.server.MinecraftServer.currentTick;
+            i *= elapsedTicks;
+            // CraftBukkit end
             this.conversionTime -= i;
 
             if (this.conversionTime <= 0)
@@ -203,7 +209,7 @@ public class EntityZombieVillager extends EntityZombie
             entityvillager.setAlwaysRenderNameTag(this.getAlwaysRenderNameTag());
         }
 
-        this.world.spawnEntity(entityvillager);
+        this.world.addEntity(entityvillager, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.CURED); // CraftBukkit - add SpawnReason
 
         if (this.converstionStarter != null)
         {
