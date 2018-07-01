@@ -259,7 +259,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
         }
     }
 
-    private void captureCurrentPosition()
+    public void captureCurrentPosition() // Akarin Forge - public
     {
         this.firstGoodX = this.player.posX;
         this.firstGoodY = this.player.posY;
