@@ -199,7 +199,7 @@ public class BlockShulkerBox extends BlockContainer
     {
         TileEntity tileentity = worldIn.getTileEntity(pos);
 
-        if (false && tileentity instanceof TileEntityShulkerBox) // CraftBukkit - moved up
+        if (false && tileentity instanceof TileEntityShulkerBox) // CraftBukkit
         {
             TileEntityShulkerBox tileentityshulkerbox = (TileEntityShulkerBox)tileentity;
 
@@ -221,7 +221,7 @@ public class BlockShulkerBox extends BlockContainer
             }
 
         }
-        worldIn.updateComparatorOutputLevel(pos, state.getBlock()); // CraftBukkit - moved down
+        worldIn.updateComparatorOutputLevel(pos, state.getBlock()); // CraftBukkit
 
         super.breakBlock(worldIn, pos, state);
     }

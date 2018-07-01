@@ -133,7 +133,7 @@ public class AdvancementList
             }
         }
 
-        // LOGGER.info("Loaded " + this.advancements.size() + " advancements"); // CraftBukkit - moved to AdvancementManager#reload
+        // LOGGER.info("Loaded " + this.advancements.size() + " advancements"); // CraftBukkit
     }
 
     public void clear()

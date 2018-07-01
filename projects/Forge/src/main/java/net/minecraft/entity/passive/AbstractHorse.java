@@ -610,7 +610,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
 
     public void onDeath(DamageSource cause)
     {
-        // super.onDeath(cause); // CraftBukkit - Moved down
+        // super.onDeath(cause); // CraftBukkit
 
         if (!this.world.isRemote && this.horseChest != null)
         {

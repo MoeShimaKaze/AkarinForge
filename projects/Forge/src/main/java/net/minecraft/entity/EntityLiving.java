@@ -76,7 +76,7 @@ public abstract class EntityLiving extends EntityLivingBase
     protected float[] inventoryHandsDropChances = new float[2];
     private final NonNullList<ItemStack> inventoryArmor = NonNullList.<ItemStack>withSize(4, ItemStack.EMPTY);
     protected float[] inventoryArmorDropChances = new float[4];
-    // private boolean canPickUpLoot; // CraftBukkit - moved up to EntityLiving
+    // private boolean canPickUpLoot; // CraftBukkit
     protected boolean persistenceRequired; // Akarin Forge - protected
     private final Map<PathNodeType, Float> mapPathPriority = Maps.newEnumMap(PathNodeType.class);
     private ResourceLocation deathLootTable;

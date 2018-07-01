@@ -347,7 +347,7 @@ public class EntityWolf extends EntityTameable
 
             if (this.aiSit != null)
             {
-                // this.aiSit.setSitting(false); // CraftBukkit - moved into EntityLiving.d(DamageSource, float)
+                // this.aiSit.setSitting(false); // CraftBukkit
             }
 
             if (entity != null && !(entity instanceof EntityPlayer) && !(entity instanceof EntityArrow))

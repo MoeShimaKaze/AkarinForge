@@ -72,7 +72,7 @@ public class BlockFarmland extends Block
 
     public void onFallenUpon(World worldIn, BlockPos pos, Entity entityIn, float fallDistance)
     {
-        super.onFallenUpon(worldIn, pos, entityIn, fallDistance); // CraftBukkit - moved here as game rules / events shouldn't affect fall damage.
+        super.onFallenUpon(worldIn, pos, entityIn, fallDistance); // CraftBukkit - game rules / events shouldn't affect fall damage.
         if (!worldIn.isRemote && entityIn.canTrample(worldIn, this, pos, fallDistance)) // Forge: Move logic to Entity#canTrample
         {
             // CraftBukkit start - Interact soil
@@ -89,7 +89,7 @@ public class BlockFarmland extends Block
             turnToDirt(worldIn, pos);
         }
 
-        // super.onFallenUpon(worldIn, pos, entityIn, fallDistance); // CraftBukkit - moved up
+        // super.onFallenUpon(worldIn, pos, entityIn, fallDistance); // CraftBukkit
     }
 
     protected static void turnToDirt(World p_190970_0_, BlockPos worldIn)

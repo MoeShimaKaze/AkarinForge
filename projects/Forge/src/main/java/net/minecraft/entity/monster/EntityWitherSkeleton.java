@@ -75,7 +75,7 @@ public class EntityWitherSkeleton extends AbstractSkeleton
                 this.entityDropItem(new ItemStack(Items.SKULL, 1, 1), 0.0F);
             }
         }
-        super.onDeath(cause); // CraftBukkit - moved from above
+        super.onDeath(cause); // CraftBukkit
     }
 
     protected void setEquipmentBasedOnDifficulty(DifficultyInstance difficulty)

@@ -1,6 +1,8 @@
 package net.minecraft.entity.item;
 
 import javax.annotation.Nullable;
+import javax.tools.DocumentationTool.Location;
+
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -106,7 +108,8 @@ public class EntityEnderPearl extends EntityThrowable
                     org.bukkit.event.player.PlayerTeleportEvent teleEvent = new org.bukkit.event.player.PlayerTeleportEvent(player, player.getLocation(), location, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.ENDER_PEARL);
                     org.bukkit.Bukkit.getPluginManager().callEvent(teleEvent);
                     if (!teleEvent.isCancelled() && !entityplayermp.connection.isDisconnected()) { // CraftBukkit end
-                    net.minecraftforge.event.entity.living.EnderTeleportEvent event = new net.minecraftforge.event.entity.living.EnderTeleportEvent(entityplayermp, this.posX, this.posY, this.posZ, 5.0F);
+                    org.bukkit.Location to = teleEvent.getTo(); // Akarin Forge - respect CraftBukkit
+                    net.minecraftforge.event.entity.living.EnderTeleportEvent event = new net.minecraftforge.event.entity.living.EnderTeleportEvent(entityplayermp, to.getX(), to.getY(), to.getZ(), 5.0F); // Akarin Forge - respect CraftBukkit
                     if (!net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event))
                     { // Don't indent to lower patch size
                     if (this.rand.nextFloat() < 0.05F && this.world.getGameRules().getBoolean("doMobSpawning"))
@@ -122,13 +125,7 @@ public class EntityEnderPearl extends EntityThrowable
                         entitylivingbase.dismountRidingEntity();
                     }
 
-                    // Akarin Forge - start
-                    boolean forgeHooked = event.getTargetX() != this.posX || event.getTargetY() != this.posY || event.getTargetZ() != this.posZ;
-                    if (forgeHooked) {
-                        entitylivingbase.setPositionAndUpdate(event.getTargetX(), event.getTargetY(), event.getTargetZ());
-                    } else {
-                        entityplayermp.connection.teleport(teleEvent.getTo()); // Akarin Forge - TODO better treat
-                    } // Akarin Forge - end
+                    entityplayermp.connection.teleport(new org.bukkit.Location(this.world.getWorld(), event.getTargetX(), event.getTargetY(), event.getTargetZ())); // CraftBukkit // Akarin Forge - respect Forge
                     org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = this; // CraftBukkit
                     entitylivingbase.fallDistance = 0.0F;
                     org.bukkit.craftbukkit.event.CraftEventFactory.entityDamage = null; // CraftBukkit

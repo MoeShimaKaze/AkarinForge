@@ -568,7 +568,7 @@ public class EntityZombie extends EntityMob
                 }
             }
         }
-        super.onDeath(cause); // CraftBukkit - moved from above
+        super.onDeath(cause); // CraftBukkit
     }
 
     protected ItemStack getSkullDrop()

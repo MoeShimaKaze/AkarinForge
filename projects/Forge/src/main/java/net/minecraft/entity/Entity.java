@@ -469,7 +469,7 @@ public abstract class Entity implements ICommandSender, net.minecraftforge.commo
         this.prevRotationPitch = this.rotationPitch;
         this.prevRotationYaw = this.rotationYaw;
 
-        /*// CraftBukkit - Moved up to postTick
+        /*// CraftBukkit
         if (!this.world.isRemote && this.world instanceof WorldServer)
         {
             this.world.profiler.startSection("portal");

@@ -68,7 +68,7 @@ public class EntitySkeleton extends AbstractSkeleton
                 this.entityDropItem(new ItemStack(Items.SKULL, 1, 0), 0.0F);
             }
         }
-        super.onDeath(cause); // CraftBukkit - moved from above
+        super.onDeath(cause); // CraftBukkit
     }
 
     protected EntityArrow getArrow(float p_190726_1_)

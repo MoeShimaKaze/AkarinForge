@@ -272,7 +272,7 @@ public class ChunkProviderServer implements IChunkProvider
 
                     if (chunk != null && chunk.unloadQueued)
                     {
-                        if (!unloadChunk(chunk, true)) continue; // CraftBukkit - move unload logic to own method
+                        if (!unloadChunk(chunk, true)) continue; // CraftBukkit
                         ++i;
                     }
                 }
@@ -302,7 +302,7 @@ public class ChunkProviderServer implements IChunkProvider
                 }
             }
         }
-        net.minecraftforge.common.ForgeChunkManager.putDormantChunk(ChunkPos.asLong(chunk.x, chunk.z), chunk); // Akarin Forge - Moved from unloadChunks above
+        net.minecraftforge.common.ForgeChunkManager.putDormantChunk(ChunkPos.asLong(chunk.x, chunk.z), chunk); // Akarin Forge
         chunk.onUnload(); // Moved from unloadChunks above
         if (save) {
             this.saveChunkData(chunk);

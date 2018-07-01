@@ -34,7 +34,7 @@ public class ContainerPlayer extends Container
         this.isLocalWorld = localWorld;
         this.player = playerIn;
         // CraftBukkit start
-        this.craftResult = new InventoryCraftResult(); // CraftBukkit - moved to before InventoryCrafting construction
+        this.craftResult = new InventoryCraftResult(); // CraftBukkit
         this.craftMatrix = new InventoryCrafting(this, 2, 2, playerInventory.player); // CraftBukkit - pass player
         this.craftMatrix.resultInventory = this.craftResult; // CraftBukkit - let InventoryCrafting know about its result slot
         this.inventoryPlayer = playerInventory; // CraftBukkit - save player

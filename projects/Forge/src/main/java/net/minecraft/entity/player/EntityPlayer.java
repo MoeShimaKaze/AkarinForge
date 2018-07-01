@@ -1048,7 +1048,7 @@ public abstract class EntityPlayer extends EntityLivingBase
                     this.wakeUpPlayer(true, true, false);
                 }
 
-                // this.spawnShoulderEntities(); // CraftBukkit - moved down
+                // this.spawnShoulderEntities(); // CraftBukkit
 
                 if (source.isDifficultyScaled())
                 {

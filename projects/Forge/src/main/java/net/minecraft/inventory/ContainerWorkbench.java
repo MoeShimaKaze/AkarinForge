@@ -9,8 +9,8 @@ import net.minecraft.world.World;
 
 public class ContainerWorkbench extends Container
 {
-    public InventoryCrafting craftMatrix; // CraftBukkit - move initialization into constructor
-    public InventoryCraftResult craftResult; // CraftBukkit - move initialization into constructor
+    public InventoryCrafting craftMatrix; // CraftBukkit
+    public InventoryCraftResult craftResult; // CraftBukkit
     private final World world;
     private final BlockPos pos;
     private final EntityPlayer player;

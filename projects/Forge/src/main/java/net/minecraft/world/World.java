@@ -161,7 +161,7 @@ public abstract class World implements IBlockAccess, net.minecraftforge.common.c
         return ((net.minecraft.world.gen.ChunkProviderServer) this.chunkProvider).getChunkIfLoaded(x, z);
     }
 
-    protected World(ISaveHandler saveHandlerIn, WorldInfo info, WorldProvider providerIn, Profiler profilerIn, boolean client) { World(saveHandlerIn, info, providerIn, profilerIn, client, (org.bukkit.generator.ChunkGenerator) null, org.bukkit.World.Environment.NORMAL); } // Akarin Forge - FIXME
+    protected World(ISaveHandler saveHandlerIn, WorldInfo info, WorldProvider providerIn, Profiler profilerIn, boolean client) { this(saveHandlerIn, info, providerIn, profilerIn, client, (org.bukkit.generator.ChunkGenerator) null, org.bukkit.World.Environment.NORMAL); } // Akarin Forge - FIXME
     protected World(ISaveHandler saveHandlerIn, WorldInfo info, WorldProvider providerIn, Profiler profilerIn, boolean client, org.bukkit.generator.ChunkGenerator gen, org.bukkit.World.Environment env)
     {
         this.generator = gen;
