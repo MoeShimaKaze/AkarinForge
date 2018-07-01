@@ -1166,8 +1166,10 @@ public abstract class EntityPlayer extends EntityLivingBase
         return (float)i / (float)this.inventory.armorInventory.size();
     }
 
-    protected void damageEntity(DamageSource damageSrc, float damageAmount)
+    protected boolean damageEntity(DamageSource damageSrc, float damageAmount) // CraftBukkit - void -> boolean
     {
+        return super.damageEntity(damageSrc, damageAmount); // CraftBukkit
+        /* // CraftBukkit
         if (!this.isEntityInvulnerable(damageSrc))
         {
             damageAmount = net.minecraftforge.common.ForgeHooks.onLivingHurt(this, damageSrc, damageAmount);
@@ -1193,6 +1195,7 @@ public abstract class EntityPlayer extends EntityLivingBase
                 }
             }
         }
+        */ // CraftBukkit
     }
 
     public void openEditSign(TileEntitySign signTile)
