@@ -19,10 +19,12 @@ public class EntityLightningBolt extends EntityWeatherEffect
     public long boltVertex;
     private int boltLivingTime;
     private final boolean effectOnly;
+    public boolean isEffect; // CraftBukkit
 
     public EntityLightningBolt(World worldIn, double x, double y, double z, boolean effectOnlyIn)
     {
         super(worldIn);
+        this.isEffect = flag; // CraftBukkit
         this.setLocationAndAngles(x, y, z, 0.0F, 0.0F);
         this.lightningState = 2;
         this.boltVertex = this.rand.nextLong();
@@ -34,7 +36,10 @@ public class EntityLightningBolt extends EntityWeatherEffect
         {
             if (worldIn.getBlockState(blockpos).getMaterial() == Material.AIR && Blocks.FIRE.canPlaceBlockAt(worldIn, blockpos))
             {
-                worldIn.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+                // CraftBukkit start
+                if (!org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(world, blockpos.getX(), blockpos.getY(), blockpos.getZ(), this).isCancelled()) {
+                    world.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+                } // CraftBukkit end
             }
 
             for (int i = 0; i < 4; ++i)
@@ -43,7 +48,10 @@ public class EntityLightningBolt extends EntityWeatherEffect
 
                 if (worldIn.getBlockState(blockpos1).getMaterial() == Material.AIR && Blocks.FIRE.canPlaceBlockAt(worldIn, blockpos1))
                 {
-                    worldIn.setBlockState(blockpos1, Blocks.FIRE.getDefaultState());
+                    // CraftBukkit start
+                    if (!CraftEventFactory.callBlockIgniteEvent(world, blockpos1.getX(), blockpos1.getY(), blockpos1.getZ(), this).isCancelled()) {
+                        world.setBlockState(blockpos1, Blocks.FIRE.getDefaultState());
+                    } // CraftBukkit end
                 }
             }
         }
@@ -60,7 +68,22 @@ public class EntityLightningBolt extends EntityWeatherEffect
 
         if (this.lightningState == 2)
         {
-            this.world.playSound((EntityPlayer)null, this.posX, this.posY, this.posZ, SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.WEATHER, 10000.0F, 0.8F + this.rand.nextFloat() * 0.2F);
+            // CraftBukkit start - Use relative location for far away sounds
+            float pitch = 0.8F + this.rand.nextFloat() * 0.2F;
+            int viewDistance = ((net.minecraft.world.WorldServer) this.world).getServer().getViewDistance() * 16;
+            for (net.minecraft.entity.player.EntityPlayerMP player : (List<net.minecraft.entity.player.EntityPlayerMP>) (List) this.world.playerEntities) {
+                double deltaX = this.posX - player.posX;
+                double deltaZ = this.posZ - player.posZ;
+                double distanceSquared = deltaX * deltaX + deltaZ * deltaZ;
+                if (distanceSquared > viewDistance * viewDistance) {
+                    double deltaLength = Math.sqrt(distanceSquared);
+                    double relativeX = player.posX + (deltaX / deltaLength) * viewDistance;
+                    double relativeZ = player.posZ + (deltaZ / deltaLength) * viewDistance;
+                    player.connection.sendPacket(new net.minecraft.network.play.server.SPacketSoundEffect(SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.WEATHER, relativeX, this.posY, relativeZ, 10000.0F, pitch));
+                } else {
+                    player.connection.sendPacket(new net.minecraft.network.play.server.SPacketSoundEffect(SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.WEATHER, this.posX, this.posY, this.posZ, 10000.0F, pitch));
+                }
+            } // CraftBukkit end
             this.world.playSound((EntityPlayer)null, this.posX, this.posY, this.posZ, SoundEvents.ENTITY_LIGHTNING_IMPACT, SoundCategory.WEATHER, 2.0F, 0.5F + this.rand.nextFloat() * 0.2F);
         }
 
@@ -84,13 +107,16 @@ public class EntityLightningBolt extends EntityWeatherEffect
 
                     if (this.world.getGameRules().getBoolean("doFireTick") && this.world.isAreaLoaded(blockpos, 10) && this.world.getBlockState(blockpos).getMaterial() == Material.AIR && Blocks.FIRE.canPlaceBlockAt(this.world, blockpos))
                     {
-                        this.world.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+                        // CraftBukkit start - add "!isEffect"
+                        if (!isEffect && !org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(world, blockpos.getX(), blockpos.getY(), blockpos.getZ(), this).isCancelled()) {
+                            this.world.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+                        } // CraftBukkit end
                     }
                 }
             }
         }
 
-        if (this.lightningState >= 0)
+        if (this.lightningState >= 0 && !this.isEffect) // CraftBukkit - add !this.isEffect
         {
             if (this.world.isRemote)
             {

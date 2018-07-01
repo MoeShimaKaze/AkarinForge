@@ -104,6 +104,11 @@ public class EntityLeashKnot extends EntityHanging
             {
                 if (entityliving.getLeashed() && entityliving.getLeashHolder() == player)
                 {
+                    // CraftBukkit start
+                    if (org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerLeashEntityEvent(entityliving, this, player).isCancelled()) {
+                        ((net.minecraft.entity.player.EntityPlayerMP) player).connection.sendPacket(new net.minecraft.network.play.server.SPacketEntityAttach(entityliving, entityliving.getLeashHolder()));
+                        continue;
+                    } // CraftBukkit end
                     entityliving.setLeashHolder(this, true);
                     flag = true;
                 }
@@ -111,17 +116,24 @@ public class EntityLeashKnot extends EntityHanging
 
             if (!flag)
             {
-                this.setDead();
+                boolean die = true; // CraftBukkit
 
-                if (player.capabilities.isCreativeMode)
+                if (true || player.capabilities.isCreativeMode) // CraftBukkit - Process for non-creative as well
                 {
                     for (EntityLiving entityliving1 : list)
                     {
                         if (entityliving1.getLeashed() && entityliving1.getLeashHolder() == this)
                         {
                             entityliving1.clearLeashed(true, false);
+                            // CraftBukkit start
+                            if (org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerUnleashEntityEvent(entityliving1, player).isCancelled()) {
+                                die = false; continue;
+                            }
+                            entityliving1.clearLeashed(true, !player.capabilities.isCreativeMode); // false -> survival mode boolean
+                            // CraftBukkit end
                         }
                     }
+                    if (die) this.setDead(); // CraftBukkit
                 }
             }
 

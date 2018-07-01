@@ -17,6 +17,7 @@ public class EntityLargeFireball extends EntityFireball
     public EntityLargeFireball(World worldIn)
     {
         super(worldIn);
+        isIncendiary = this.world.getGameRules().getBoolean("mobGriefing"); // CraftBukkit
     }
 
     @SideOnly(Side.CLIENT)
@@ -28,6 +29,7 @@ public class EntityLargeFireball extends EntityFireball
     public EntityLargeFireball(World worldIn, EntityLivingBase shooter, double accelX, double accelY, double accelZ)
     {
         super(worldIn, shooter, accelX, accelY, accelZ);
+        isIncendiary = this.world.getGameRules().getBoolean("mobGriefing"); // CraftBukkit
     }
 
     protected void onImpact(RayTraceResult result)
@@ -41,7 +43,13 @@ public class EntityLargeFireball extends EntityFireball
             }
 
             boolean flag = net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this.shootingEntity);
-            this.world.newExplosion((Entity)null, this.posX, this.posY, this.posZ, (float)this.explosionPower, flag, flag);
+            // CraftBukkit start - fire ExplosionPrimeEvent
+            org.bukkit.event.entity.ExplosionPrimeEvent event = new org.bukkit.event.entity.ExplosionPrimeEvent((org.bukkit.entity.Explosive) org.bukkit.craftbukkit.entity.CraftEntity.getEntity(this.world.getServer(), this));
+            this.world.getServer().getPluginManager().callEvent(event);
+            if (!event.isCancelled()) {
+                // give 'this' instead of (Entity) null so we know what causes the damage
+                this.world.newExplosion(this, this.posX, this.posY, this.posZ, event.getRadius(), event.getFire(), isIncendiary);
+            } // CraftBukkit end
             this.setDead();
         }
     }
@@ -63,7 +71,7 @@ public class EntityLargeFireball extends EntityFireball
 
         if (compound.hasKey("ExplosionPower", 99))
         {
-            this.explosionPower = compound.getInteger("ExplosionPower");
+            bukkitYield = this.explosionPower = compound.getInteger("ExplosionPower"); // CraftBukkit - set bukkitYield when setting explosionpower
         }
     }
 }

@@ -255,15 +255,36 @@ public class EntityWither extends EntityMob implements IRangedAttackMob
 
             if (j1 <= 0)
             {
-                this.world.newExplosion(this, this.posX, this.posY + (double)this.getEyeHeight(), this.posZ, 7.0F, false, net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this));
-                this.world.playBroadcastSound(1023, new BlockPos(this), 0);
+                // CraftBukkit start
+                // this.world.createExplosion(this, this.locX, this.locY + (double) this.getHeadHeight(), this.locZ, 7.0F, false, this.world.getGameRules().getBoolean("mobGriefing"));
+                org.bukkit.event.entity.ExplosionPrimeEvent event = new org.bukkit.event.entity.ExplosionPrimeEvent(this.getBukkitEntity(), 7.0F, false);
+                this.world.getServer().getPluginManager().callEvent(event);
+                if (!event.isCancelled()) {
+                    this.world.newExplosion(this, this.posX, this.posY + (double) this.getEyeHeight(), this.posZ, event.getRadius(), event.getFire(), net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this));
+                }
+                // CraftBukkit end
+                // CraftBukkit start - Use relative location for far away sounds
+                int viewDistance = ((net.minecraft.world.WorldServer) this.world).getServer().getViewDistance() * 16;
+                for (EntityPlayerMP player : (List<EntityPlayerMP>) net.minecraft.server.MinecraftServer.getServer().getPlayerList().playerEntityList) {
+                    double deltaX = this.posX - player.posX;
+                    double deltaZ = this.posZ - player.posZ;
+                    double distanceSquared = deltaX * deltaX + deltaZ * deltaZ;
+                    if (distanceSquared > viewDistance * viewDistance) {
+                        double deltaLength = Math.sqrt(distanceSquared);
+                        double relativeX = player.posX + (deltaX / deltaLength) * viewDistance;
+                        double relativeZ = player.posZ + (deltaZ / deltaLength) * viewDistance;
+                        player.connection.sendPacket(new net.minecraft.network.play.server.SPacketEffect(1023, new BlockPos((int) relativeX, (int) this.posY, (int) relativeZ), 0, true));
+                    } else {
+                        player.connection.sendPacket(new net.minecraft.network.play.server.SPacketEffect(1023, new BlockPos((int) this.posX, (int) this.posY, (int) this.posZ), 0, true));
+                    }
+                } // CraftBukkit end
             }
 
             this.setInvulTime(j1);
 
             if (this.ticksExisted % 10 == 0)
             {
-                this.heal(10.0F);
+                this.heal(10.0F, org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.WITHER_SPAWN); // CraftBukkit
             }
         }
         else
@@ -384,6 +405,7 @@ public class EntityWither extends EntityMob implements IRangedAttackMob
 
                                 if (!block.isAir(iblockstate, this.world, blockpos) && block.canEntityDestroy(iblockstate, world, blockpos, this) && net.minecraftforge.event.ForgeEventFactory.onEntityDestroyBlock(this, blockpos, iblockstate))
                                 {
+                                    if (org.bukkit.craftbukkit.event.CraftEventFactory.callEntityChangeBlockEvent(this, blockpos, Blocks.AIR, 0).isCancelled()) continue; // CraftBukkit
                                     flag = this.world.destroyBlock(blockpos, true) || flag;
                                 }
                             }
@@ -399,7 +421,7 @@ public class EntityWither extends EntityMob implements IRangedAttackMob
 
             if (this.ticksExisted % 20 == 0)
             {
-                this.heal(1.0F);
+                this.heal(1.0F, org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.REGEN); // CraftBukkit
             }
 
             this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());

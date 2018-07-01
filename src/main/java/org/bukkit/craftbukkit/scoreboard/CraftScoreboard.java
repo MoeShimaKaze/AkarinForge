@@ -163,8 +163,5 @@ public final class CraftScoreboard implements org.bukkit.scoreboard.Scoreboard {
         board.setObjectiveInDisplaySlot(CraftScoreboardTranslations.fromBukkitSlot(slot), null);
     }
 
-    // CraftBukkit method
-    public Scoreboard getHandle() {
-        return board;
-    }
+    public Scoreboard getHandle() { return board; } // CraftBukkit method
 }

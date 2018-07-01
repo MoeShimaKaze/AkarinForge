@@ -78,7 +78,7 @@ public class EntityWitherSkull extends EntityFireball
             {
                 if (this.shootingEntity != null)
                 {
-                    if (result.entityHit.attackEntityFrom(DamageSource.causeMobDamage(this.shootingEntity), 8.0F))
+                    if (result.entityHit.attackEntityFrom(DamageSource.causeThrownDamage(this.shootingEntity), 8.0F)) // CraftBukkit
                     {
                         if (result.entityHit.isEntityAlive())
                         {
@@ -86,7 +86,7 @@ public class EntityWitherSkull extends EntityFireball
                         }
                         else
                         {
-                            this.shootingEntity.heal(5.0F);
+                            this.shootingEntity.heal(5.0F, org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.WITHER); // CraftBukkit
                         }
                     }
                 }
@@ -115,7 +115,12 @@ public class EntityWitherSkull extends EntityFireball
                 }
             }
 
-            this.world.newExplosion(this, this.posX, this.posY, this.posZ, 1.0F, false, net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this.shootingEntity));
+            // CraftBukkit start
+            org.bukkit.event.entity.ExplosionPrimeEvent event = new org.bukkit.event.entity.ExplosionPrimeEvent(this.getBukkitEntity(), 1.0F, false);
+            this.world.getServer().getPluginManager().callEvent(event);
+            if (!event.isCancelled()) {
+                this.world.newExplosion(this, this.posX, this.posY, this.posZ, event.getRadius(), event.getFire(), net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this.shootingEntity));
+            } // CraftBukkit end
             this.setDead();
         }
     }
