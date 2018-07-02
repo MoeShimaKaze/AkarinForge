@@ -27,6 +27,7 @@ public class EntitySmallFireball extends EntityFireball
     {
         super(worldIn, x, y, z, accelX, accelY, accelZ);
         this.setSize(0.3125F, 0.3125F);
+        if (this.shootingEntity != null && this.shootingEntity instanceof EntityLiving) isIncendiary = this.world.getGameRules().getBoolean("mobGriefing"); // CraftBukkit
     }
 
     public static void registerFixesSmallFireball(DataFixer fixer)
@@ -42,6 +43,15 @@ public class EntitySmallFireball extends EntityFireball
             {
                 if (!result.entityHit.isImmuneToFire())
                 {
+                    // CraftBukkit start - Entity damage by entity event + combust event
+                    isIncendiary = result.entityHit.attackEntityFrom(DamageSource.causeFireballDamage(this, this.shootingEntity), 5.0F);
+                    if (isIncendiary) {
+                        this.applyEnchantments(this.shootingEntity, result.entityHit);
+                        org.bukkit.event.entity.EntityCombustByEntityEvent event = new org.bukkit.event.entity.EntityCombustByEntityEvent((org.bukkit.entity.Projectile) this.getBukkitEntity(), result.entityHit.getBukkitEntity(), 5);
+                        result.entityHit.world.getServer().getPluginManager().callEvent(event);
+                        if (!event.isCancelled()) result.entityHit.setFire(event.getDuration());
+                    }
+                    /*
                     boolean flag = result.entityHit.attackEntityFrom(DamageSource.causeFireballDamage(this, this.shootingEntity), 5.0F);
 
                     if (flag)
@@ -49,6 +59,7 @@ public class EntitySmallFireball extends EntityFireball
                         this.applyEnchantments(this.shootingEntity, result.entityHit);
                         result.entityHit.setFire(5);
                     }
+                    */ // CraftBukkit end
                 }
             }
             else
@@ -66,7 +77,11 @@ public class EntitySmallFireball extends EntityFireball
 
                     if (this.world.isAirBlock(blockpos))
                     {
-                        this.world.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+                        // CraftBukkit start
+                        if (!org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(world, blockpos.getX(), blockpos.getY(), blockpos.getZ(), this).isCancelled()) {
+                            this.world.setBlockState(blockpos, Blocks.FIRE.getDefaultState());
+                        }
+                        // CraftBukkit end
                     }
                 }
             }

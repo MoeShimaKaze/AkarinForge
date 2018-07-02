@@ -175,6 +175,13 @@ public class ItemDye extends Item
 
             if (!entitysheep.getSheared() && entitysheep.getFleeceColor() != enumdyecolor)
             {
+                // CraftBukkit start
+                byte bColor = (byte) enumdyecolor.getMetadata();
+                org.bukkit.event.entity.SheepDyeWoolEvent event = new org.bukkit.event.entity.SheepDyeWoolEvent((org.bukkit.entity.Sheep) entitysheep.getBukkitEntity(), org.bukkit.DyeColor.getByWoolData(bColor));
+                entitysheep.world.getServer().getPluginManager().callEvent(event);
+                if (event.isCancelled()) return false;
+                enumdyecolor = EnumDyeColor.byMetadata((byte) event.getColor().getWoolData());
+                // CraftBukkit end
                 entitysheep.setFleeceColor(enumdyecolor);
                 stack.shrink(1);
             }

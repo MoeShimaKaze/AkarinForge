@@ -38,6 +38,11 @@ public class ItemFireball extends Item
             {
                 if (worldIn.getBlockState(pos).getMaterial() == Material.AIR)
                 {
+                    // CraftBukkit start - fire BlockIgniteEvent
+                    if (org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(worldIn, pos.getX(), pos.getY(), pos.getZ(), org.bukkit.event.block.BlockIgniteEvent.IgniteCause.FIREBALL, player).isCancelled()) {
+                        if (!player.capabilities.isCreativeMode) itemstack.shrink(1);
+                        return EnumActionResult.PASS;
+                    } // CraftBukkit end
                     worldIn.playSound((EntityPlayer)null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 1.0F, (itemRand.nextFloat() - itemRand.nextFloat()) * 0.2F + 1.0F);
                     worldIn.setBlockState(pos, Blocks.FIRE.getDefaultState());
                 }

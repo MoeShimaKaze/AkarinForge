@@ -203,6 +203,14 @@ public class EntitySlime extends EntityLiving implements IMob
         if (!this.world.isRemote && i > 1 && this.getHealth() <= 0.0F)
         {
             int j = 2 + this.rand.nextInt(3);
+            // CraftBukkit start
+            org.bukkit.event.entity.SlimeSplitEvent event = new org.bukkit.event.entity.SlimeSplitEvent((org.bukkit.entity.Slime) this.getBukkitEntity(), j);
+            this.world.getServer().getPluginManager().callEvent(event);
+            if (!event.isCancelled() && event.getCount() > 0) {
+                j = event.getCount();
+            } else {
+                super.setDead(); return;
+            } // CraftBukkit end
 
             for (int k = 0; k < j; ++k)
             {
@@ -222,7 +230,7 @@ public class EntitySlime extends EntityLiving implements IMob
 
                 entityslime.setSlimeSize(i / 2, true);
                 entityslime.setLocationAndAngles(this.posX + (double)f, this.posY + 0.5D, this.posZ + (double)f1, this.rand.nextFloat() * 360.0F, 0.0F);
-                this.world.spawnEntity(entityslime);
+                this.world.addEntity(entityslime, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SLIME_SPLIT); // CraftBukkit - SpawnReason
             }
         }
 

@@ -22,9 +22,29 @@ public abstract class UserListEntryBan<T> extends UserListEntry<T>
         this.reason = banReason == null ? "Banned by an operator." : banReason;
     }
 
+    // CraftBukkit start
+    public String getSource() {
+        return this.bannedBy;
+    }
+    public Date getCreated() {
+        return this.banStartDate;
+    }
+    private static <T> T checkExpiry(T object, JsonObject jsonobject) {
+        Date expires = null;
+        try {
+            expires = jsonobject.has("expires") ? DATE_FORMAT.parse(jsonobject.get("expires").getAsString()) : null;
+        } catch (ParseException ex) {
+            // Guess we don't have a date
+        }
+        if (expires == null || expires.after(new Date())) {
+            return object;
+        } else {
+            return null;
+        }
+    } // CraftBukkit end
     protected UserListEntryBan(T valueIn, JsonObject json)
     {
-        super(valueIn, json);
+        super(checkExpiry(valueIn, json), json);
         Date date;
 
         try

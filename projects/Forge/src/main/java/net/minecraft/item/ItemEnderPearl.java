@@ -22,6 +22,15 @@ public class ItemEnderPearl extends Item
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn)
     {
         ItemStack itemstack = playerIn.getHeldItem(handIn);
+        // CraftBukkit start - change order
+        if (!worldIn.isRemote) {
+            EntityEnderPearl entityenderpearl = new EntityEnderPearl(worldIn, playerIn);
+            entityenderpearl.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
+            if (!worldIn.spawnEntity(entityenderpearl)) {
+                if (playerIn instanceof net.minecraft.entity.player.EntityPlayerMP) ((net.minecraft.entity.player.EntityPlayerMP) playerIn).getBukkitEntity().updateInventory();
+                return new ActionResult<ItemStack>(EnumActionResult.FAIL, itemstack);
+            }
+        } // CraftBukkit end
 
         if (!playerIn.capabilities.isCreativeMode)
         {
@@ -31,12 +40,14 @@ public class ItemEnderPearl extends Item
         worldIn.playSound((EntityPlayer)null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_ENDERPEARL_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
         playerIn.getCooldownTracker().setCooldown(this, 20);
 
+        /* // CraftBukkit start
         if (!worldIn.isRemote)
         {
             EntityEnderPearl entityenderpearl = new EntityEnderPearl(worldIn, playerIn);
             entityenderpearl.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
             worldIn.spawnEntity(entityenderpearl);
         }
+        */ // CraftBukkit start
 
         playerIn.addStat(StatList.getObjectUseStats(this));
         return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemstack);

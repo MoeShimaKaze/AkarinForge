@@ -73,6 +73,11 @@ public class EntityAIPanic extends EntityAIBase
 
     public boolean shouldContinueExecuting()
     {
+        // CraftBukkit start - introduce a temporary timeout hack until this is fixed properly
+        if ((this.creature.ticksExisted - this.creature.revengeTimer) > 100) {
+            this.creature.onKillEntity((net.minecraft.entity.EntityLivingBase) null);
+            return false;
+        } // CraftBukkit end
         return !this.creature.getNavigator().noPath();
     }
 

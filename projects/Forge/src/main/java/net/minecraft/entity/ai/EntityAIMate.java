@@ -106,12 +106,22 @@ public class EntityAIMate extends EntityAIBase
 
         if (entityageable != null)
         {
+            // CraftBukkit start - set persistence for tame animals
+            if (entityageable instanceof net.minecraft.entity.passive.EntityTameable && ((net.minecraft.entity.passive.EntityTameable) entityageable).isTamed()) {
+                entityageable.persistenceRequired = true;
+            } // CraftBukkit end
             EntityPlayerMP entityplayermp = this.animal.getLoveCause();
 
             if (entityplayermp == null && this.targetMate.getLoveCause() != null)
             {
                 entityplayermp = this.targetMate.getLoveCause();
             }
+            // CraftBukkit start - call EntityBreedEvent
+            int experience = this.animal.getRNG().nextInt(7) + 1;
+            org.bukkit.event.entity.EntityBreedEvent entityBreedEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callEntityBreedEvent(entityageable, animal, targetMate, entityplayermp, this.animal.breedItem, experience);
+            if (entityBreedEvent.isCancelled()) return;
+            experience = entityBreedEvent.getExperience();
+            // CraftBukkit end
 
             if (entityplayermp != null)
             {
@@ -125,7 +135,7 @@ public class EntityAIMate extends EntityAIBase
             this.targetMate.resetInLove();
             entityageable.setGrowingAge(-24000);
             entityageable.setLocationAndAngles(this.animal.posX, this.animal.posY, this.animal.posZ, 0.0F, 0.0F);
-            this.world.spawnEntity(entityageable);
+            this.world.addEntity(entityageable, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.BREEDING); // CraftBukkit - added SpawnReason
             Random random = this.animal.getRNG();
 
             for (int i = 0; i < 7; ++i)
@@ -141,7 +151,7 @@ public class EntityAIMate extends EntityAIBase
 
             if (this.world.getGameRules().getBoolean("doMobLoot"))
             {
-                this.world.spawnEntity(new EntityXPOrb(this.world, this.animal.posX, this.animal.posY, this.animal.posZ, random.nextInt(7) + 1));
+                if (experience > 0) this.world.spawnEntity(new EntityXPOrb(this.world, this.animal.posX, this.animal.posY, this.animal.posZ, experience)); // CraftBukkit - use event experience
             }
         }
     }

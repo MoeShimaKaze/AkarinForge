@@ -30,6 +30,34 @@ public abstract class EntityMinecartContainer extends EntityMinecart implements 
     public boolean dropContentsWhenDead = true;
     private ResourceLocation lootTable;
     private long lootTableSeed;
+    // CraftBukkit start
+    public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    private int maxStack = MAX_STACK;
+
+    public java.util.List<ItemStack> getContents() {
+        return this.minecartContainerItems;
+    }
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public org.bukkit.inventory.InventoryHolder getOwner() {
+        org.bukkit.entity.Entity cart = getBukkitEntity();
+        if(cart instanceof org.bukkit.inventory.InventoryHolder) return (org.bukkit.inventory.InventoryHolder) cart;
+        return null;
+    }
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+    }
+    @Override public org.bukkit.Location getLocation() {
+        return getBukkitEntity().getLocation();
+    }
+    // CraftBukkit end
 
     public EntityMinecartContainer(World worldIn)
     {
@@ -134,7 +162,7 @@ public abstract class EntityMinecartContainer extends EntityMinecart implements 
 
     public int getInventoryStackLimit()
     {
-        return 64;
+        return maxStack; // CraftBukkit
     }
 
     @Nullable

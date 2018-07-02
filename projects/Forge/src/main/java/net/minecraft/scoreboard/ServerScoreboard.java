@@ -18,6 +18,14 @@ public class ServerScoreboard extends Scoreboard
     private final MinecraftServer scoreboardMCServer;
     private final Set<ScoreObjective> addedObjectives = Sets.<ScoreObjective>newHashSet();
     private Runnable[] dirtyRunnables = new Runnable[0];
+    // CraftBukkit start - Send to players
+    private void sendAll(Packet packet) {
+        for (EntityPlayerMP entityplayer : (List<EntityPlayerMP>) this.scoreboardMCServer.getPlayerList().playerEntityList) {
+            if (entityplayer.getBukkitEntity().getScoreboard().getHandle() == this) {
+                entityplayer.connection.sendPacket(packet);
+            }
+        }
+    } // CraftBukkit end
 
     public ServerScoreboard(MinecraftServer mcServer)
     {
@@ -30,7 +38,7 @@ public class ServerScoreboard extends Scoreboard
 
         if (this.addedObjectives.contains(scoreIn.getObjective()))
         {
-            this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketUpdateScore(scoreIn));
+            this.sendAll(new SPacketUpdateScore(scoreIn)); // CraftBukkit
         }
 
         this.markSaveDataDirty();
@@ -39,7 +47,7 @@ public class ServerScoreboard extends Scoreboard
     public void broadcastScoreUpdate(String scoreName)
     {
         super.broadcastScoreUpdate(scoreName);
-        this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketUpdateScore(scoreName));
+        this.sendAll(new SPacketUpdateScore(scoreName)); // CraftBukkit
         this.markSaveDataDirty();
     }
 
@@ -59,7 +67,7 @@ public class ServerScoreboard extends Scoreboard
         {
             if (this.getObjectiveDisplaySlotCount(scoreobjective) > 0)
             {
-                this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketDisplayObjective(objectiveSlot, objective));
+                this.sendAll(new SPacketDisplayObjective(objectiveSlot, objective)); // CraftBukkit
             }
             else
             {
@@ -71,7 +79,7 @@ public class ServerScoreboard extends Scoreboard
         {
             if (this.addedObjectives.contains(objective))
             {
-                this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketDisplayObjective(objectiveSlot, objective));
+                this.sendAll(new SPacketDisplayObjective(objectiveSlot, objective)); // CraftBukkit
             }
             else
             {
@@ -87,7 +95,7 @@ public class ServerScoreboard extends Scoreboard
         if (super.addPlayerToTeam(player, newTeam))
         {
             ScorePlayerTeam scoreplayerteam = this.getTeam(newTeam);
-            this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketTeams(scoreplayerteam, Arrays.asList(player), 3));
+            this.sendAll(new SPacketTeams(scoreplayerteam, Arrays.asList(player), 3)); // CraftBukkit
             this.markSaveDataDirty();
             return true;
         }
@@ -100,7 +108,7 @@ public class ServerScoreboard extends Scoreboard
     public void removePlayerFromTeam(String username, ScorePlayerTeam playerTeam)
     {
         super.removePlayerFromTeam(username, playerTeam);
-        this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketTeams(playerTeam, Arrays.asList(username), 4));
+        this.sendAll(new SPacketTeams(playerTeam, Arrays.asList(username), 4)); // CraftBukkit
         this.markSaveDataDirty();
     }
 
@@ -116,7 +124,7 @@ public class ServerScoreboard extends Scoreboard
 
         if (this.addedObjectives.contains(objective))
         {
-            this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketScoreboardObjective(objective, 2));
+            this.sendAll(new SPacketScoreboardObjective(objective, 2)); // CraftBukkit
         }
 
         this.markSaveDataDirty();
@@ -137,21 +145,21 @@ public class ServerScoreboard extends Scoreboard
     public void broadcastTeamCreated(ScorePlayerTeam playerTeam)
     {
         super.broadcastTeamCreated(playerTeam);
-        this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketTeams(playerTeam, 0));
+        this.sendAll(new SPacketTeams(playerTeam, 0)); // CraftBukkit
         this.markSaveDataDirty();
     }
 
     public void broadcastTeamInfoUpdate(ScorePlayerTeam playerTeam)
     {
         super.broadcastTeamInfoUpdate(playerTeam);
-        this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketTeams(playerTeam, 2));
+        this.sendAll(new SPacketTeams(playerTeam, 2)); // CraftBukkit
         this.markSaveDataDirty();
     }
 
     public void broadcastTeamRemove(ScorePlayerTeam playerTeam)
     {
         super.broadcastTeamRemove(playerTeam);
-        this.scoreboardMCServer.getPlayerList().sendPacketToAllPlayers(new SPacketTeams(playerTeam, 1));
+        this.sendAll(new SPacketTeams(playerTeam, 1)); // CraftBukkit
         this.markSaveDataDirty();
     }
 
@@ -198,6 +206,7 @@ public class ServerScoreboard extends Scoreboard
         {
             for (Packet<?> packet : list)
             {
+                if (entityplayermp.getBukkitEntity().getScoreboard().getHandle() != this) continue; // CraftBukkit - Only players on this board
                 entityplayermp.connection.sendPacket(packet);
             }
         }
@@ -229,6 +238,7 @@ public class ServerScoreboard extends Scoreboard
         {
             for (Packet<?> packet : list)
             {
+                if (entityplayermp.getBukkitEntity().getScoreboard().getHandle() != this) continue; // CraftBukkit - Only players on this board
                 entityplayermp.connection.sendPacket(packet);
             }
         }

@@ -30,6 +30,55 @@ public class SaveHandler implements ISaveHandler, IPlayerFileData
     private final String saveDirectoryName;
     private final TemplateManager structureTemplateManager;
     protected final DataFixer dataFixer;
+    private java.util.UUID uuid = null; // CraftBukkit
+    // CraftBukkit start
+    public NBTTagCompound getPlayerData(String s) {
+        try {
+            File file = new File(this.playersDirectory, s + ".dat");
+            if (file.exists()) return CompressedStreamTools.readCompressed((java.io.InputStream) (new FileInputStream(file)));
+        } catch (Exception exception) {
+            LOGGER.warn("Failed to load player data for " + s);
+        }
+        return null;
+    }
+    public java.util.UUID getUUID() {
+        if (uuid != null) return uuid;
+        File file1 = new File(this.worldDirectory, "uid.dat");
+        if (file1.exists()) {
+            DataInputStream dis = null;
+            try {
+                dis = new DataInputStream(new FileInputStream(file1));
+                return uuid = new UUID(dis.readLong(), dis.readLong());
+            } catch (IOException ex) {
+                LOGGER.warn("Failed to read " + file1 + ", generating new random UUID", ex);
+            } finally {
+                if (dis != null) {
+                    try {
+                        dis.close();
+                    } catch (IOException ex) {} // NOOP
+                }
+            }
+        }
+        uuid = java.util.UUID.randomUUID();
+        DataOutputStream dos = null;
+        try {
+            dos = new DataOutputStream(new FileOutputStream(file1));
+            dos.writeLong(uuid.getMostSignificantBits());
+            dos.writeLong(uuid.getLeastSignificantBits());
+        } catch (IOException ex) {
+            LOGGER.warn("Failed to write " + file1, ex);
+        } finally {
+            if (dos != null) {
+                try {
+                    dos.close();
+                } catch (IOException ex) {} // NOOP
+            }
+        }
+        return uuid;
+    }
+    public File getPlayerDir() {
+        return playersDirectory;
+    } // CraftBukkit end
 
     public SaveHandler(File p_i46648_1_, String saveDirectoryNameIn, boolean p_i46648_3_, DataFixer dataFixerIn)
     {
@@ -221,6 +270,15 @@ public class SaveHandler implements ISaveHandler, IPlayerFileData
 
         if (nbttagcompound != null)
         {
+            // CraftBukkit start
+            if (player instanceof net.minecraft.entity.player.EntityPlayerMP) {
+                org.bukkit.craftbukkit.entity.CraftPlayer cplayer = (org.bukkit.craftbukkit.entity.CraftPlayer) player.getBukkitEntity();
+                // Only update first played if it is older than the one we have
+                long modified = new File(this.playersDirectory, player.getUniqueID().toString() + ".dat").lastModified();
+                if (modified < cplayer.getFirstPlayed()) {
+                    cplayer.setFirstPlayed(modified);
+                }
+            } // CraftBukkit end
             player.readFromNBT(this.dataFixer.process(FixTypes.PLAYER, nbttagcompound));
         }
 

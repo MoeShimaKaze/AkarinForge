@@ -48,6 +48,18 @@ public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
     private final String serverId = "";
     private SecretKey secretKey;
     private EntityPlayerMP player;
+    public String hostname = ""; // CraftBukkit - add field
+    // CraftBukkit start
+    @Deprecated public void disconnect(String s) {
+        try {
+            ITextComponent ichatbasecomponent = new net.minecraft.util.text.TextComponentString(s);
+            NetHandlerLoginServer.LOGGER.info("Disconnecting {}: {}", this.getConnectionInfo(), s);
+            this.networkManager.sendPacket(new SPacketDisconnect(ichatbasecomponent));
+            this.networkManager.closeChannel(ichatbasecomponent);
+        } catch (Exception exception) {
+            NetHandlerLoginServer.LOGGER.error("Error whilst disconnecting player", exception);
+        }
+    } // CraftBukkit end
 
     public NetHandlerLoginServer(MinecraftServer serverIn, NetworkManager networkManagerIn)
     {
@@ -101,11 +113,11 @@ public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
             this.loginGameProfile = this.getOfflineProfile(this.loginGameProfile);
         }
 
-        String s = this.server.getPlayerList().allowUserToConnect(this.networkManager.getRemoteAddress(), this.loginGameProfile);
+        EntityPlayerMP s = this.server.getPlayerList().attemptLogin(this, this.loginGameProfile, hostname); // CraftBukkit - fire PlayerLoginEvent
 
-        if (s != null)
+        if (s == null) // CraftBukkit
         {
-            this.disconnect(new TextComponentTranslation(s, new Object[0]));
+            // this.disconnect(new TextComponentTranslation(s, new Object[0])); // CraftBukkit
         }
         else
         {
@@ -128,11 +140,11 @@ public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
             if (entityplayermp != null)
             {
                 this.currentLoginState = NetHandlerLoginServer.LoginState.DELAY_ACCEPT;
-                this.player = this.server.getPlayerList().createPlayerForUser(this.loginGameProfile);
+                this.player = this.server.getPlayerList().processLogin(this.loginGameProfile, s); // CraftBukkit - add player reference
             }
             else
             {
-                net.minecraftforge.fml.common.network.internal.FMLNetworkHandler.fmlServerHandshake(this.server.getPlayerList(), this.networkManager, this.server.getPlayerList().createPlayerForUser(this.loginGameProfile));
+                net.minecraftforge.fml.common.network.internal.FMLNetworkHandler.fmlServerHandshake(this.server.getPlayerList(), this.networkManager, this.server.getPlayerList().processLogin(this.loginGameProfile, s)); // CraftBukkit - add player reference
             }
         }
     }
@@ -190,6 +202,35 @@ public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
 
                         if (NetHandlerLoginServer.this.loginGameProfile != null)
                         {
+                            // CraftBukkit start - fire PlayerPreLoginEvent
+                            if (!networkManager.isChannelOpen()) return;
+                            String playerName = loginGameProfile.getName();
+                            java.net.InetAddress address = ((java.net.InetSocketAddress) networkManager.getRemoteAddress()).getAddress();
+                            java.util.UUID uniqueId = loginGameProfile.getId();
+                            final org.bukkit.craftbukkit.CraftServer server = NetHandlerLoginServer.this.server.server;
+                            org.bukkit.event.player.AsyncPlayerPreLoginEvent asyncEvent = new org.bukkit.event.player.AsyncPlayerPreLoginEvent(playerName, address, uniqueId);
+                            server.getPluginManager().callEvent(asyncEvent);
+                            if (org.bukkit.event.player.PlayerPreLoginEvent.getHandlerList().getRegisteredListeners().length != 0) {
+                                final org.bukkit.event.player.PlayerPreLoginEvent event = new org.bukkit.event.player.PlayerPreLoginEvent(playerName, address, uniqueId);
+                                if (asyncEvent.getResult() != org.bukkit.event.player.PlayerPreLoginEvent.Result.ALLOWED) {
+                                    event.disallow(asyncEvent.getResult(), asyncEvent.getKickMessage());
+                                }
+                                org.bukkit.craftbukkit.util.Waitable<org.bukkit.event.player.PlayerPreLoginEvent.Result> waitable = new org.bukkit.craftbukkit.util.Waitable<org.bukkit.event.player.PlayerPreLoginEvent.Result>() {
+                                    @SuppressWarnings("deprecation") @Override protected org.bukkit.event.player.PlayerPreLoginEvent.Result evaluate() {
+                                        server.getPluginManager().callEvent(event);
+                                        return event.getResult();
+                                    }};
+                                NetHandlerLoginServer.this.server.processQueue.add(waitable);
+                                if (waitable.get() != org.bukkit.event.player.PlayerPreLoginEvent.Result.ALLOWED) {
+                                    disconnect(event.getKickMessage());
+                                    return;
+                                }
+                            } else {
+                                if (asyncEvent.getLoginResult() != org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+                                    disconnect(asyncEvent.getKickMessage());
+                                    return;
+                                }
+                            } // CraftBukkit end
                             NetHandlerLoginServer.LOGGER.info("UUID of player {} is {}", NetHandlerLoginServer.this.loginGameProfile.getName(), NetHandlerLoginServer.this.loginGameProfile.getId());
                             NetHandlerLoginServer.this.currentLoginState = NetHandlerLoginServer.LoginState.READY_TO_ACCEPT;
                         }
@@ -218,6 +259,10 @@ public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
                             NetHandlerLoginServer.this.disconnect(new TextComponentTranslation("multiplayer.disconnect.authservers_down", new Object[0]));
                             NetHandlerLoginServer.LOGGER.error("Couldn't verify username because servers are unavailable");
                         }
+                    } catch (Exception exception) { // CraftBukkit start - catch all exceptions
+                        disconnect("Failed to verify username!");
+                        server.server.getLogger().log(java.util.logging.Level.WARNING, "Exception verifying " + gameprofile.getName(), exception);
+                        // CraftBukkit end
                     }
                 }
                 @Nullable

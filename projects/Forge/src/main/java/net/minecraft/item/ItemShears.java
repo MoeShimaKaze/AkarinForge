@@ -50,10 +50,20 @@ public class ItemShears extends Item
             BlockPos pos = new BlockPos(entity.posX, entity.posY, entity.posZ);
             if (target.isShearable(itemstack, entity.world, pos))
             {
+                if (entity instanceof net.minecraft.entity.passive.EntityMooshroom ||
+                    entity instanceof net.minecraft.entity.monster.EntitySnowman ||
+                    entity instanceof net.minecraft.entity.passive.EntitySheep) { // Akarin Forge - respect CraftBukkit
+                    // CraftBukkit start
+                    org.bukkit.event.player.PlayerShearEntityEvent event = new org.bukkit.event.player.PlayerShearEntityEvent((org.bukkit.entity.Player) player.getBukkitEntity(), entity.getBukkitEntity());
+                    entity.world.getServer().getPluginManager().callEvent(event);
+                    if (event.isCancelled()) return false;
+                    // CraftBukkit end
+                } // Akarin Forge
                 java.util.List<ItemStack> drops = target.onSheared(itemstack, entity.world, pos,
                         net.minecraft.enchantment.EnchantmentHelper.getEnchantmentLevel(net.minecraft.init.Enchantments.FORTUNE, itemstack));
 
                 java.util.Random rand = new java.util.Random();
+                if (entity instanceof net.minecraft.entity.passive.EntitySheep) entity.forceDrops = true; // Akarin Forge - respect CraftBukkit
                 for(ItemStack stack : drops)
                 {
                     net.minecraft.entity.item.EntityItem ent = entity.entityDropItem(stack, 1.0F);
@@ -61,6 +71,7 @@ public class ItemShears extends Item
                     ent.motionX += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
                     ent.motionZ += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
                 }
+                if (entity instanceof net.minecraft.entity.passive.EntitySheep) entity.forceDrops = false; // Akarin Forge - respect CraftBukkit
                 itemstack.damageItem(1, entity);
             }
             return true;

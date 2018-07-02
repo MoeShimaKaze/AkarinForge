@@ -37,6 +37,7 @@ public class TileEntitySign extends TileEntity
             String s = ITextComponent.Serializer.componentToJson(this.signText[i]);
             compound.setString("Text" + (i + 1), s);
         }
+        if (Boolean.getBoolean("convertLegacySigns")) compound.setBoolean("Bukkit.isConverted", true); // CraftBukkit
 
         this.stats.writeStatsToNBT(compound);
         return compound;
@@ -79,9 +80,33 @@ public class TileEntitySign extends TileEntity
             }
         };
 
+        // CraftBukkit start - Add an option to convert signs correctly
+        // This is done with a flag instead of all the time because
+        // we have no way to tell whether a sign is from 1.7.10 or 1.8
+        boolean oldSign = Boolean.getBoolean("convertLegacySigns") && !compound.getBoolean("Bukkit.isConverted");
+        // CraftBukkit end
         for (int i = 0; i < 4; ++i)
         {
+            // CraftBukkit start
             String s = compound.getString("Text" + (i + 1));
+            if (s != null && s.length() > 2048) {
+                s = "\"\"";
+            }
+            try {
+                ITextComponent itextcomponent = ITextComponent.Serializer.jsonToComponent(s);
+                if (oldSign) {
+                    signText[i] = org.bukkit.craftbukkit.util.CraftChatMessage.fromString(s)[0];
+                    continue;
+                }
+                try {
+                    this.signText[i] = TextComponentUtils.processComponent(icommandsender, itextcomponent, (Entity) null);
+                } catch (CommandException commandexception) {
+                    this.signText[i] = itextcomponent;
+                }
+            } catch (com.google.gson.JsonParseException jsonparseexception) {
+                this.signText[i] = new TextComponentString(s);
+            }
+            /*
             ITextComponent itextcomponent = ITextComponent.Serializer.jsonToComponent(s);
 
             try
@@ -92,6 +117,7 @@ public class TileEntitySign extends TileEntity
             {
                 this.signText[i] = itextcomponent;
             }
+            */ // CraftBukkit end
         }
 
         this.stats.readStatsFromNBT(compound);
@@ -201,7 +227,13 @@ public class TileEntitySign extends TileEntity
 
                 if (clickevent.getAction() == ClickEvent.Action.RUN_COMMAND)
                 {
-                    playerIn.getServer().getCommandManager().executeCommand(icommandsender, clickevent.getValue());
+                    // CraftBukkit start
+                    CommandBlockBaseLogic.executeSafely(icommandsender, new org.bukkit.craftbukkit.command.ProxiedNativeCommandSender(
+                            icommandsender,
+                            new org.bukkit.craftbukkit.command.CraftBlockCommandSender(icommandsender),
+                            playerIn.getBukkitEntity()
+                    ), clickevent.getValue());
+                    // CraftBukkit end
                 }
             }
         }

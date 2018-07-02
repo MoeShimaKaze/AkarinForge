@@ -124,7 +124,7 @@ public class EntityPotion extends EntityThrowable
             {
                 this.applyWater();
             }
-            else if (!list.isEmpty())
+            else if (true || !list.isEmpty()) // CraftBukkit - Call event even if no effects to apply
             {
                 if (this.isLingering())
                 {
@@ -165,6 +165,7 @@ public class EntityPotion extends EntityThrowable
     {
         AxisAlignedBB axisalignedbb = this.getEntityBoundingBox().grow(4.0D, 2.0D, 4.0D);
         List<EntityLivingBase> list = this.world.<EntityLivingBase>getEntitiesWithinAABB(EntityLivingBase.class, axisalignedbb);
+        java.util.Map<org.bukkit.entity.LivingEntity, Double> affected = new java.util.HashMap<org.bukkit.entity.LivingEntity, Double>(); // CraftBukkit
 
         if (!list.isEmpty())
         {
@@ -183,6 +184,39 @@ public class EntityPotion extends EntityThrowable
                             d1 = 1.0D;
                         }
 
+                        // CraftBukkit start
+                        affected.put((org.bukkit.entity.LivingEntity) entitylivingbase.getBukkitEntity(), d1);
+                    }
+                }
+            }
+        }
+        org.bukkit.event.entity.PotionSplashEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPotionSplashEvent(this, affected);
+        if (!event.isCancelled() && p_190543_2_ != null && !p_190543_2_.isEmpty()) { // do not process effects if there are no effects to process
+            for (org.bukkit.entity.LivingEntity victim : event.getAffectedEntities()) {
+                if (!(victim instanceof org.bukkit.craftbukkit.entity.CraftLivingEntity)) {
+                    continue;
+                }
+                EntityLivingBase entityliving = ((org.bukkit.craftbukkit.entity.CraftLivingEntity) victim).getHandle();
+                double d1 = event.getIntensity(victim);
+                java.util.Iterator<PotionEffect> iterator = p_190543_2_.iterator();
+                while (iterator.hasNext()) {
+                    PotionEffect mobeffect = (PotionEffect) iterator.next();
+                    Potion mobeffectlist = mobeffect.getPotion();
+                    // Abide by PVP settings - for players only!
+                    if (!this.world.pvpMode && this.getThrower() instanceof net.minecraft.entity.player.EntityPlayerMP && entityliving instanceof net.minecraft.entity.player.EntityPlayerMP && entityliving != this.getThrower()) {
+                        int i = Potion.getIdFromPotion(mobeffectlist);
+                        // Block SLOWER_MOVEMENT, SLOWER_DIG, HARM, BLINDNESS, HUNGER, WEAKNESS and POISON potions
+                        if (i == 2 || i == 4 || i == 7 || i == 15 || i == 17 || i == 18 || i == 19) {
+                            continue;
+                        }
+                    }
+                    if (mobeffectlist.isInstant()) {
+                        mobeffectlist.affectEntity(this, this.getThrower(), entityliving, mobeffect.getAmplifier(), d1);
+                    } else {
+                        int i = (int) (d1 * (double) mobeffect.getDuration() + 0.5D);
+                        if (i > 20) {
+                            entityliving.addPotionEffect(new PotionEffect(mobeffectlist, i, mobeffect.getAmplifier(), mobeffect.getIsAmbient(), mobeffect.doesShowParticles()));
+                        /*
                         for (PotionEffect potioneffect : p_190543_2_)
                         {
                             Potion potion = potioneffect.getPotion();
@@ -200,6 +234,7 @@ public class EntityPotion extends EntityThrowable
                                     entitylivingbase.addPotionEffect(new PotionEffect(potion, i, potioneffect.getAmplifier(), potioneffect.getIsAmbient(), potioneffect.doesShowParticles()));
                                 }
                             }
+                            */ // CraftBukkit end
                         }
                     }
                 }
@@ -229,7 +264,14 @@ public class EntityPotion extends EntityThrowable
             entityareaeffectcloud.setColor(nbttagcompound.getInteger("CustomPotionColor"));
         }
 
-        this.world.spawnEntity(entityareaeffectcloud);
+        // CraftBukkit start
+        org.bukkit.event.entity.LingeringPotionSplashEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callLingeringPotionSplashEvent(this, entityareaeffectcloud);
+        if (!(event.isCancelled() || entityareaeffectcloud.isDead)) {
+            this.world.spawnEntity(entityareaeffectcloud);
+        } else {
+            entityareaeffectcloud.isDead = true;
+        }
+        // CraftBukkit end
     }
 
     private boolean isLingering()

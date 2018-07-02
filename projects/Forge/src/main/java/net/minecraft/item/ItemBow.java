@@ -134,8 +134,18 @@ public class ItemBow extends Item
 
                         if (EnchantmentHelper.getEnchantmentLevel(Enchantments.FLAME, stack) > 0)
                         {
-                            entityarrow.setFire(100);
+                            // CraftBukkit start - call EntityCombustEvent
+                            org.bukkit.event.entity.EntityCombustEvent event = new org.bukkit.event.entity.EntityCombustEvent(entityarrow.getBukkitEntity(), 100);
+                            entityarrow.world.getServer().getPluginManager().callEvent(event);
+                            if (!event.isCancelled()) entityarrow.setFire(event.getDuration());
                         }
+                        // CraftBukkit start
+                        org.bukkit.event.entity.EntityShootBowEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callEntityShootBowEvent(entityplayer, itemstack, entityarrow, f);
+                        if (event.isCancelled()) {
+                            event.getProjectile().remove();
+                            return;
+                        }
+                        // CraftBukkit end
 
                         stack.damageItem(1, entityplayer);
 

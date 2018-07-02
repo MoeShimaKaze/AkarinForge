@@ -69,6 +69,15 @@ public class SlotFurnaceOutput extends Slot
 
                 i = j;
             }
+            // CraftBukkit start - fire FurnaceExtractEvent
+            org.bukkit.entity.Player bplayer = (org.bukkit.entity.Player) player.getBukkitEntity();
+            net.minecraft.tileentity.TileEntityFurnace furnace = ((net.minecraft.tileentity.TileEntityFurnace) this.inventory);
+            org.bukkit.block.Block block = player.world.getWorld().getBlockAt(furnace.pos.getX(), furnace.pos.getY(), furnace.pos.getZ());
+            if (removeCount != 0) {
+                org.bukkit.event.inventory.FurnaceExtractEvent event = new org.bukkit.event.inventory.FurnaceExtractEvent(bplayer, block, org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(stack.getItem()), removeCount, i);
+                player.world.getServer().getPluginManager().callEvent(event);
+                i = event.getExpToDrop();
+            } // CraftBukkit end
 
             while (i > 0)
             {

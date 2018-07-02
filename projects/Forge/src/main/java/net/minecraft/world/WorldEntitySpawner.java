@@ -25,7 +25,7 @@ import net.minecraft.world.chunk.Chunk;
 public final class WorldEntitySpawner
 {
     private static final int MOB_COUNT_DIV = (int)Math.pow(17.0D, 2.0D);
-    private final Set<ChunkPos> eligibleChunksForSpawning = Sets.<ChunkPos>newHashSet();
+    private final org.bukkit.craftbukkit.util.LongHashSet eligibleChunksForSpawning = new org.bukkit.craftbukkit.util.LongHashSet(); // CraftBukkit
 
     public int findChunksForSpawning(WorldServer worldServerIn, boolean spawnHostileMobs, boolean spawnPeacefulMobs, boolean spawnOnSetTickRate)
     {
@@ -53,7 +53,8 @@ public final class WorldEntitySpawner
                             boolean flag = i1 == -8 || i1 == 8 || j1 == -8 || j1 == 8;
                             ChunkPos chunkpos = new ChunkPos(i1 + j, j1 + k);
 
-                            if (!this.eligibleChunksForSpawning.contains(chunkpos))
+                            long chunkCoords = org.bukkit.craftbukkit.util.LongHash.toLong(chunkpos.x, chunkpos.z); // CraftBukkit - use LongHash and LongHashSet
+                            if (!this.eligibleChunksForSpawning.contains(chunkCoords)) // CraftBukkit
                             {
                                 ++i;
 
@@ -63,7 +64,7 @@ public final class WorldEntitySpawner
 
                                     if (playerchunkmapentry != null && playerchunkmapentry.isSentToPlayers())
                                     {
-                                        this.eligibleChunksForSpawning.add(chunkpos);
+                                        this.eligibleChunksForSpawning.add(chunkCoords); // CraftBukkit
                                     }
                                 }
                             }
@@ -77,21 +78,46 @@ public final class WorldEntitySpawner
 
             for (EnumCreatureType enumcreaturetype : EnumCreatureType.values())
             {
+                // CraftBukkit start - Use per-world spawn limits
+                int limit = enumcreaturetype.getMaxNumberOfCreature();
+                switch (enumcreaturetype) {
+                    case MONSTER:
+                        limit = worldServerIn.getWorld().getMonsterSpawnLimit();
+                        break;
+                    case CREATURE:
+                        limit = worldServerIn.getWorld().getAnimalSpawnLimit();
+                        break;
+                    case WATER_CREATURE:
+                        limit = worldServerIn.getWorld().getWaterAnimalSpawnLimit();
+                        break;
+                    case AMBIENT:
+                        limit = worldServerIn.getWorld().getAmbientSpawnLimit();
+                        break;
+                }
+                if (limit == 0) continue;
+                // CraftBukkit end
                 if ((!enumcreaturetype.getPeacefulCreature() || spawnPeacefulMobs) && (enumcreaturetype.getPeacefulCreature() || spawnHostileMobs) && (!enumcreaturetype.getAnimal() || spawnOnSetTickRate))
                 {
                     int k4 = worldServerIn.countEntities(enumcreaturetype, true);
-                    int l4 = enumcreaturetype.getMaxNumberOfCreature() * i / MOB_COUNT_DIV;
+                    int l4 = limit * i / MOB_COUNT_DIV; // CraftBukkit - use per-world limits
 
                     if (k4 <= l4)
                     {
+                        /* // CraftBukkit start
                         java.util.ArrayList<ChunkPos> shuffled = com.google.common.collect.Lists.newArrayList(this.eligibleChunksForSpawning);
                         java.util.Collections.shuffle(shuffled);
+                        */
+                        java.util.Iterator<?> iterator = this.eligibleChunksForSpawning.iterator();
+                        // CraftBukkit end
                         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
                         label134:
 
-                        for (ChunkPos chunkpos1 : shuffled)
+                        while (iterator.hasNext()) // CraftBukkit
                         {
-                            BlockPos blockpos = getRandomChunkPosition(worldServerIn, chunkpos1.x, chunkpos1.z);
+                            // CraftBukkit start = use LongHash and LongObjectHashMap
+                            long key = ((Long) iterator.next()).longValue();
+                            BlockPos blockpos = getRandomChunkPosition(worldServerIn, org.bukkit.craftbukkit.util.LongHash.msw(key), org.bukkit.craftbukkit.util.LongHash.lsw(key));
+                            // CraftBukkit
                             int k1 = blockpos.getX();
                             int l1 = blockpos.getY();
                             int i2 = blockpos.getZ();
@@ -156,8 +182,7 @@ public final class WorldEntitySpawner
 
                                                     if (entityliving.isNotColliding())
                                                     {
-                                                        ++j2;
-                                                        worldServerIn.spawnEntity(entityliving);
+                                                        if (worldServerIn.addEntity(entityliving, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.NATURAL)) ++j2; // CraftBukkit
                                                     }
                                                     else
                                                     {
@@ -288,8 +313,9 @@ public final class WorldEntitySpawner
 
                             if (net.minecraftforge.event.ForgeEventFactory.canEntitySpawn(entityliving, worldIn, j + 0.5f, (float) blockpos.getY(), k +0.5f, false) == net.minecraftforge.fml.common.eventhandler.Event.Result.DENY) continue;
                             entityliving.setLocationAndAngles((double)((float)j + 0.5F), (double)blockpos.getY(), (double)((float)k + 0.5F), randomIn.nextFloat() * 360.0F, 0.0F);
-                            worldIn.spawnEntity(entityliving);
+                            // worldIn.spawnEntity(entityliving); // CraftBukkit
                             ientitylivingdata = entityliving.onInitialSpawn(worldIn.getDifficultyForLocation(new BlockPos(entityliving)), ientitylivingdata);
+                            worldIn.addEntity(entityliving, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.CHUNK_GEN); // CraftBukkit
                             flag = true;
                         }
 

@@ -33,6 +33,25 @@ public class TileEntityHopper extends TileEntityLockableLoot implements IHopper,
     private NonNullList<ItemStack> inventory = NonNullList.<ItemStack>withSize(5, ItemStack.EMPTY);
     private int transferCooldown = -1;
     private long tickedGameTime;
+    // CraftBukkit start - add fields and methods
+    public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    private int maxStack = MAX_STACK;
+
+    public java.util.List<ItemStack> getContents() {
+        return this.inventory;
+    }
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+    } // CraftBukkit end
 
     public static void registerFixesHopper(DataFixer fixer)
     {
@@ -213,11 +232,32 @@ public class TileEntityHopper extends TileEntityLockableLoot implements IHopper,
                     if (!this.getStackInSlot(i).isEmpty())
                     {
                         ItemStack itemstack = this.getStackInSlot(i).copy();
-                        ItemStack itemstack1 = putStackInInventoryAllSlots(this, iinventory, this.decrStackSize(i, 1), enumfacing);
+                        // CraftBukkit start - Call event when pushing items into other inventories
+                        org.bukkit.craftbukkit.inventory.CraftItemStack oitemstack = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(this.decrStackSize(i, 1));
+                        org.bukkit.inventory.Inventory destinationInventory;
+                        if (iinventory instanceof net.minecraft.inventory.InventoryLargeChest) { // Have to special case large chests as they work oddly
+                            destinationInventory = new org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest((net.minecraft.inventory.InventoryLargeChest) iinventory);
+                        } else {
+                            destinationInventory = iinventory.getOwner().getInventory();
+                        }
+                        org.bukkit.event.inventory.InventoryMoveItemEvent event = new org.bukkit.event.inventory.InventoryMoveItemEvent(this.getOwner().getInventory(), oitemstack.clone(), destinationInventory, true);
+                        this.getWorld().getServer().getPluginManager().callEvent(event);
+                        if (event.isCancelled()) {
+                            this.setInventorySlotContents(i, itemstack);
+                            this.setTransferCooldown(8); // Delay hopper checks
+                            return false;
+                        }
+                        ItemStack itemstack1 = putStackInInventoryAllSlots(this, iinventory, org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()), enumfacing);
+                        // CraftBukkit end
 
                         if (itemstack1.isEmpty())
                         {
-                            iinventory.markDirty();
+                            // CraftBukkit start
+                            if (event.getItem().equals(oitemstack)) {
+                                iinventory.markDirty();
+                            } else {
+                                this.setInventorySlotContents(i, itemstack);
+                            } // CraftBukkit end
                             return true;
                         }
 
@@ -358,11 +398,36 @@ public class TileEntityHopper extends TileEntityLockableLoot implements IHopper,
         if (!itemstack.isEmpty() && canExtractItemFromSlot(inventoryIn, itemstack, index, direction))
         {
             ItemStack itemstack1 = itemstack.copy();
-            ItemStack itemstack2 = putStackInInventoryAllSlots(inventoryIn, hopper, inventoryIn.decrStackSize(index, 1), (EnumFacing)null);
+            // CraftBukkit start - Call event on collection of items from inventories into the hopper
+            org.bukkit.craftbukkit.inventory.CraftItemStack oitemstack = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(inventoryIn.decrStackSize(index, 1));
+            org.bukkit.inventory.Inventory sourceInventory;
+            if (inventoryIn instanceof net.minecraft.inventory.InventoryLargeChest) { // Have to special case large chests as they work oddly
+                sourceInventory = new org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest((net.minecraft.inventory.InventoryLargeChest) inventoryIn);
+            } else {
+                sourceInventory = inventoryIn.getOwner().getInventory();
+            }
+            org.bukkit.event.inventory.InventoryMoveItemEvent event = new org.bukkit.event.inventory.InventoryMoveItemEvent(sourceInventory, oitemstack.clone(), hopper.getOwner().getInventory(), false);
+            hopper.getWorld().getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                inventoryIn.setInventorySlotContents(index, itemstack1);
+                if (hopper instanceof TileEntityHopper) {
+                    ((TileEntityHopper) hopper).setTransferCooldown(8);
+                } else if (inventoryIn instanceof net.minecraft.entity.item.EntityMinecartHopper) {
+                    ((net.minecraft.entity.item.EntityMinecartHopper) hopper).setTransferTicker(4);
+                }
+                return false;
+            }
+            ItemStack itemstack2 = putStackInInventoryAllSlots(inventoryIn, hopper, org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()), null);
+            // CraftBukkit end
 
             if (itemstack2.isEmpty())
             {
-                inventoryIn.markDirty();
+                // CraftBukkit start
+                if (event.getItem().equals(oitemstack)) {
+                    inventoryIn.markDirty();
+                } else {
+                    inventoryIn.setInventorySlotContents(index, itemstack1);
+                } // CraftBukkit end
                 return true;
             }
 
@@ -382,6 +447,11 @@ public class TileEntityHopper extends TileEntityLockableLoot implements IHopper,
         }
         else
         {
+            // CraftBukkit start
+            org.bukkit.event.inventory.InventoryPickupItemEvent event = new org.bukkit.event.inventory.InventoryPickupItemEvent(destination.getOwner().getInventory(), (org.bukkit.entity.Item) entity.getBukkitEntity());
+            entity.world.getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) return false;
+            // CraftBukkit end
             ItemStack itemstack = entity.getItem().copy();
             ItemStack itemstack1 = putStackInInventoryAllSlots(source, destination, itemstack, (EnumFacing)null);
 

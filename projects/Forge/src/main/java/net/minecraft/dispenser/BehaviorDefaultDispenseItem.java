@@ -21,12 +21,13 @@ public class BehaviorDefaultDispenseItem implements IBehaviorDispenseItem
         EnumFacing enumfacing = (EnumFacing)source.getBlockState().getValue(BlockDispenser.FACING);
         IPosition iposition = BlockDispenser.getDispensePosition(source);
         ItemStack itemstack = stack.splitStack(1);
-        doDispense(source.getWorld(), itemstack, 6, enumfacing, iposition);
+        if (!doDispense(source.getWorld(), itemstack, 6, enumfacing, source)) itemstack.grow(1); // CraftBukkit
         return stack;
     }
 
-    public static void doDispense(World worldIn, ItemStack stack, int speed, EnumFacing facing, IPosition position)
+    public static boolean doDispense(World worldIn, ItemStack stack, int speed, EnumFacing facing, IBlockSource source) // CraftBukkit - void -> boolean return, IPosition -> ISourceBlock last argument
     {
+        IPosition position = BlockDispenser.getDispensePosition(source); // CraftBukkit
         double d0 = position.getX();
         double d1 = position.getY();
         double d2 = position.getZ();
@@ -48,7 +49,29 @@ public class BehaviorDefaultDispenseItem implements IBehaviorDispenseItem
         entityitem.motionX += worldIn.rand.nextGaussian() * 0.007499999832361937D * (double)speed;
         entityitem.motionY += worldIn.rand.nextGaussian() * 0.007499999832361937D * (double)speed;
         entityitem.motionZ += worldIn.rand.nextGaussian() * 0.007499999832361937D * (double)speed;
+        // CraftBukkit start
+        org.bukkit.block.Block block = worldIn.getWorld().getBlockAt(source.getBlockPos().getX(), source.getBlockPos().getY(), source.getBlockPos().getZ());
+        org.bukkit.craftbukkit.inventory.CraftItemStack craftItem = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(stack);
+        org.bukkit.event.block.BlockDispenseEvent event = new org.bukkit.event.block.BlockDispenseEvent(block, craftItem.clone(), new org.bukkit.util.Vector(entityitem.motionX, entityitem.motionY, entityitem.motionZ));
+        if (!BlockDispenser.eventFired) worldIn.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) return false;
+        entityitem.setItem(org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()));
+        entityitem.motionX = event.getVelocity().getX();
+        entityitem.motionY = event.getVelocity().getY();
+        entityitem.motionZ = event.getVelocity().getZ();
+        if (!event.getItem().getType().equals(craftItem.getType())) {
+            ItemStack eventStack = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()); // Chain to handler for new item
+            IBehaviorDispenseItem idispensebehavior = (IBehaviorDispenseItem) BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.getObject(eventStack.getItem());
+            if (idispensebehavior != IBehaviorDispenseItem.DEFAULT_BEHAVIOR && idispensebehavior.getClass() != BehaviorDefaultDispenseItem.class) {
+                idispensebehavior.dispense(source, eventStack);
+            } else {
+                worldIn.spawnEntity(entityitem);
+            }
+            return false;
+        }
+        // CraftBukkit end
         worldIn.spawnEntity(entityitem);
+        return true; // CraftBukkit
     }
 
     protected void playDispenseSound(IBlockSource source)

@@ -62,6 +62,29 @@ public class VanillaInventoryCodeHooks
             ItemStack extractItem = handler.extractItem(i, 1, true);
             if (!extractItem.isEmpty())
             {
+                // CraftBukkit start - Call event on collection of items from inventories into the hopper
+                ItemStack copy = extractItem.copy();
+                IInventory inventoryIn = TileEntityHopper.getSourceInventory(dest);
+                org.bukkit.craftbukkit.inventory.CraftItemStack oitemstack = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(extractItem);
+                org.bukkit.inventory.Inventory sourceInventory;
+                if (inventoryIn instanceof net.minecraft.inventory.InventoryLargeChest) { // Have to special case large chests as they work oddly
+                    sourceInventory = new org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest((net.minecraft.inventory.InventoryLargeChest) inventoryIn);
+                } else {
+                    sourceInventory = inventoryIn.getOwner().getInventory();
+                }
+                org.bukkit.event.inventory.InventoryMoveItemEvent event = new org.bukkit.event.inventory.InventoryMoveItemEvent(sourceInventory, oitemstack.clone(), dest.getOwner().getInventory(), false);
+                dest.getWorld().getServer().getPluginManager().callEvent(event);
+                if (event.isCancelled()) {
+                    inventoryIn.setInventorySlotContents(i, copy);
+                    if (dest instanceof TileEntityHopper) {
+                        ((TileEntityHopper) dest).setTransferCooldown(8);
+                    } else if (inventoryIn instanceof net.minecraft.entity.item.EntityMinecartHopper) {
+                        ((net.minecraft.entity.item.EntityMinecartHopper) dest).setTransferTicker(4);
+                    }
+                    return false;
+                }
+                extractItem = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()); // Akarin Forge - respect CraftBukkit
+                // CraftBukkit end
                 for (int j = 0; j < dest.getSizeInventory(); j++)
                 {
                     ItemStack destStack = dest.getStackInSlot(j);
@@ -163,7 +186,24 @@ public class VanillaInventoryCodeHooks
                     {
                         ItemStack originalSlotContents = hopper.getStackInSlot(i).copy();
                         ItemStack insertStack = hopper.decrStackSize(i, 1);
-                        ItemStack remainder = putStackInInventoryAllSlots(hopper, destination, itemHandler, insertStack);
+                        // CraftBukkit start - Call event when pushing items into other inventories
+                        IInventory iinventory = TileEntityHopper.getInventoryAtPosition(hopper.getWorld(), hopper.getXPos() + hopperFacing.getFrontOffsetX(), hopper.getYPos() + hopperFacing.getFrontOffsetY(), hopper.getZPos() + hopperFacing.getFrontOffsetZ());
+                        org.bukkit.craftbukkit.inventory.CraftItemStack oitemstack = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(insertStack);
+                        org.bukkit.inventory.Inventory destinationInventory;
+                        if (iinventory instanceof net.minecraft.inventory.InventoryLargeChest) { // Have to special case large chests as they work oddly
+                            destinationInventory = new org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest((net.minecraft.inventory.InventoryLargeChest) iinventory);
+                        } else {
+                            destinationInventory = iinventory.getOwner().getInventory();
+                        }
+                        org.bukkit.event.inventory.InventoryMoveItemEvent event = new org.bukkit.event.inventory.InventoryMoveItemEvent(hopper.getOwner().getInventory(), oitemstack.clone(), destinationInventory, true);
+                        hopper.getWorld().getServer().getPluginManager().callEvent(event);
+                        if (event.isCancelled()) {
+                            hopper.setInventorySlotContents(i, originalSlotContents);
+                            hopper.setTransferCooldown(8); // Delay hopper checks
+                            return false;
+                        }
+                        ItemStack remainder = putStackInInventoryAllSlots(hopper, destination, itemHandler, org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()));
+                        // CraftBukkit end
 
                         if (remainder.isEmpty())
                         {

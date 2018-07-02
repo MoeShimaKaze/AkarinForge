@@ -140,7 +140,7 @@ public abstract class EntityLivingBase extends Entity
     protected double interpTargetPitch;
     protected boolean potionsNeedUpdate = true; // Akarin Forge - protected
     protected EntityLivingBase revengeTarget; // Akarin Forge - protected
-    private int revengeTimer;
+    public int revengeTimer; // Akarin Forge - public
     private EntityLivingBase lastAttackedEntity;
     private int lastAttackedEntityTime;
     private float landMovementFactor;
@@ -155,7 +155,7 @@ public abstract class EntityLivingBase extends Entity
     // CraftBukkit start
     public int expToDrop;
     public int maxAirTicks = 300;
-    boolean forceDrops;
+    public boolean forceDrops; // Akarin Forge - public
     java.util.ArrayList<org.bukkit.inventory.ItemStack> drops = new java.util.ArrayList<org.bukkit.inventory.ItemStack>();
     public org.bukkit.craftbukkit.attribute.CraftAttributeMap craftAttributes;
     public boolean collides = true;

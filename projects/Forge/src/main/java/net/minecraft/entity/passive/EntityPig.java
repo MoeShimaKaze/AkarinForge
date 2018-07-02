@@ -188,7 +188,7 @@ public class EntityPig extends EntityAnimal
 
     public void onDeath(DamageSource cause)
     {
-        super.onDeath(cause);
+        // super.onDeath(cause); // CraftBukkit
 
         if (!this.world.isRemote)
         {
@@ -197,6 +197,7 @@ public class EntityPig extends EntityAnimal
                 this.dropItem(Items.SADDLE, 1);
             }
         }
+        super.onDeath(cause); // CraftBukkit
     }
 
     @Nullable
@@ -227,6 +228,7 @@ public class EntityPig extends EntityAnimal
         if (!this.world.isRemote && !this.isDead)
         {
             EntityPigZombie entitypigzombie = new EntityPigZombie(this.world);
+            if (org.bukkit.craftbukkit.event.CraftEventFactory.callPigZapEvent(this, lightningBolt, entitypigzombie).isCancelled()) return; // CraftBukkit
             entitypigzombie.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
             entitypigzombie.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, this.rotationPitch);
             entitypigzombie.setNoAI(this.isAIDisabled());
@@ -237,7 +239,7 @@ public class EntityPig extends EntityAnimal
                 entitypigzombie.setAlwaysRenderNameTag(this.getAlwaysRenderNameTag());
             }
 
-            this.world.spawnEntity(entitypigzombie);
+            this.world.addEntity(entitypigzombie, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.LIGHTNING); // CraftBukkit - added a reason for spawning this creature
             this.setDead();
         }
     }

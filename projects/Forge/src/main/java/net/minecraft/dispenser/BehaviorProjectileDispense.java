@@ -15,9 +15,30 @@ public abstract class BehaviorProjectileDispense extends BehaviorDefaultDispense
         IPosition iposition = BlockDispenser.getDispensePosition(source);
         EnumFacing enumfacing = (EnumFacing)source.getBlockState().getValue(BlockDispenser.FACING);
         IProjectile iprojectile = this.getProjectileEntity(world, iposition, stack);
-        iprojectile.shoot((double)enumfacing.getFrontOffsetX(), (double)((float)enumfacing.getFrontOffsetY() + 0.1F), (double)enumfacing.getFrontOffsetZ(), this.getProjectileVelocity(), this.getProjectileInaccuracy());
+        // CraftBukkit start
+        ItemStack itemstack1 = stack.splitStack(1);
+        org.bukkit.block.Block block = world.getWorld().getBlockAt(source.getBlockPos().getX(), source.getBlockPos().getY(), source.getBlockPos().getZ());
+        org.bukkit.craftbukkit.inventory.CraftItemStack craftItem = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemstack1);
+        org.bukkit.event.block.BlockDispenseEvent event = new org.bukkit.event.block.BlockDispenseEvent(block, craftItem.clone(), new org.bukkit.util.Vector((double) enumfacing.getFrontOffsetX(), (double) ((float) enumfacing.getFrontOffsetY() + 0.1F), (double) enumfacing.getFrontOffsetZ()));
+        if (!BlockDispenser.eventFired) world.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            stack.grow(1);
+            return stack;
+        }
+        if (!event.getItem().equals(craftItem)) {
+            stack.grow(1);
+            ItemStack eventStack = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()); // Chain to handler for new item
+            IBehaviorDispenseItem idispensebehavior = (IBehaviorDispenseItem) BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.getObject(eventStack.getItem());
+            if (idispensebehavior != IBehaviorDispenseItem.DEFAULT_BEHAVIOR && idispensebehavior != this) {
+                idispensebehavior.dispense(source, eventStack);
+                return stack;
+            }
+        }
+        iprojectile.shoot(event.getVelocity().getX(), event.getVelocity().getY(), event.getVelocity().getZ(), this.getProjectileVelocity(), this.getProjectileInaccuracy());
+        ((Entity) iprojectile).projectileSource = new org.bukkit.craftbukkit.projectiles.CraftBlockProjectileSource((net.minecraft.tileentity.TileEntityDispenser) source.getBlockTileEntity());
+        // CraftBukkit end
         world.spawnEntity((Entity)iprojectile);
-        stack.shrink(1);
+        // stack.shrink(1); // CraftBukkit - Handled during event processing
         return stack;
     }
 

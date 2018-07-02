@@ -135,9 +135,9 @@ public class PreYggdrasilConverter
                 {
                     userlistbans.readSavedFile();
                 }
-                catch (FileNotFoundException filenotfoundexception)
+                catch (IOException filenotfoundexception) // CraftBukkit - FileNotFoundException -> IOException
                 {
-                    LOGGER.warn("Could not load existing file {}", userlistbans.getSaveFile().getName(), filenotfoundexception);
+                    LOGGER.warn("Could not load existing file {}", userlistbans.getSaveFile().getName());  // CraftBukkit
                 }
             }
 
@@ -211,9 +211,9 @@ public class PreYggdrasilConverter
                 {
                     userlistipbans.readSavedFile();
                 }
-                catch (FileNotFoundException filenotfoundexception)
+                catch (IOException filenotfoundexception) // CraftBukkit - FileNotFoundException -> IOException
                 {
-                    LOGGER.warn("Could not load existing file {}", userlistipbans.getSaveFile().getName(), filenotfoundexception);
+                    LOGGER.warn("Could not load existing file {}", userlistipbans.getSaveFile().getName()); // CraftBukkit
                 }
             }
 
@@ -261,9 +261,9 @@ public class PreYggdrasilConverter
                 {
                     userlistops.readSavedFile();
                 }
-                catch (FileNotFoundException filenotfoundexception)
+                catch (IOException filenotfoundexception) // CraftBukkit - FileNotFoundException -> IOException
                 {
-                    LOGGER.warn("Could not load existing file {}", userlistops.getSaveFile().getName(), filenotfoundexception);
+                    LOGGER.warn("Could not load existing file {}", userlistops.getSaveFile().getName()); // CraftBukkit
                 }
             }
 
@@ -322,9 +322,9 @@ public class PreYggdrasilConverter
                 {
                     userlistwhitelist.readSavedFile();
                 }
-                catch (FileNotFoundException filenotfoundexception)
+                catch (FileNotFoundException filenotfoundexception) // CraftBukkit - FileNotFoundException -> IOException
                 {
-                    LOGGER.warn("Could not load existing file {}", userlistwhitelist.getSaveFile().getName(), filenotfoundexception);
+                    LOGGER.warn("Could not load existing file {}", userlistwhitelist.getSaveFile().getName()); // CraftBukkit
                 }
             }
 
@@ -434,6 +434,23 @@ public class PreYggdrasilConverter
                     {
                         File file5 = new File(file1, p_152743_2_ + ".dat");
                         File file6 = new File(p_152743_1_, p_152743_3_ + ".dat");
+                        // CraftBukkit start - Use old file name to seed lastKnownName
+                        net.minecraft.nbt.NBTTagCompound root = null;
+                        try {
+                            root = net.minecraft.nbt.CompressedStreamTools.readCompressed(new java.io.FileInputStream(file1));
+                        } catch (Exception exception) {
+                            exception.printStackTrace();
+                        }
+                        if (root != null) {
+                            if (!root.hasKey("bukkit")) root.setTag("bukkit", new net.minecraft.nbt.NBTTagCompound());
+                            net.minecraft.nbt.NBTTagCompound data = root.getCompoundTag("bukkit");
+                            data.setString("lastKnownName", s);
+                            try {
+                                net.minecraft.nbt.CompressedStreamTools.writeCompressed(root, new java.io.FileOutputStream(file2));
+                            } catch (Exception exception) {
+                                exception.printStackTrace();
+                            }
+                        } // CraftBukkit end
                         PreYggdrasilConverter.mkdir(p_152743_1_);
 
                         if (!file5.renameTo(file6))
@@ -589,7 +606,7 @@ public class PreYggdrasilConverter
     private static File getPlayersDirectory(PropertyManager properties)
     {
         String s = properties.getStringProperty("level-name", "world");
-        File file1 = new File(s);
+        File file1 = new File(net.minecraft.server.MinecraftServer.getServer().server.getWorldContainer(), s); // CraftBukkit - Respect container setting
         return new File(file1, "players");
     }
 

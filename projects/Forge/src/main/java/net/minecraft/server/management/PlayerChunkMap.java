@@ -48,6 +48,14 @@ public class PlayerChunkMap
     private long previousTotalWorldTime;
     private boolean sortMissingChunks = true;
     private boolean sortSendToPlayers = true;
+    private boolean wasNotEmpty; // CraftBukkit - add field
+    // CraftBukkit start - add method
+    public final boolean isChunkInUse(int x, int z) {
+        PlayerChunkMapEntry pi = getEntry(x, z);
+        if (pi != null) return (pi.players.size() > 0);
+        return false;
+    }
+    // CraftBukkit end
 
     public PlayerChunkMap(WorldServer serverWorld)
     {
@@ -183,7 +191,7 @@ public class PlayerChunkMap
                             break;
                         }
                     }
-                }
+                } else iterator.remove(); // CraftBukkit start - SPIGOT-2891: remove once chunk has been provided
             }
         }
 
@@ -276,13 +284,18 @@ public class PlayerChunkMap
         player.managedPosX = player.posX;
         player.managedPosZ = player.posZ;
 
+        List<ChunkPos> chunkList = new java.util.LinkedList<ChunkPos>(); // CraftBukkit - Load nearby chunks first
         for (int k = i - this.playerViewRadius; k <= i + this.playerViewRadius; ++k)
         {
             for (int l = j - this.playerViewRadius; l <= j + this.playerViewRadius; ++l)
             {
-                this.getOrCreateEntry(k, l).addPlayer(player);
+                chunkList.add(new ChunkPos(k, l)); // CraftBukkit
             }
         }
+        // CraftBukkit start
+        Collections.sort(chunkList, new net.minecraftforge.common.util.ChunkCoordComparator(player));
+        for (ChunkPos pair : chunkList) this.getOrCreateEntry(pair.x, pair.z).addPlayer(player);
+        // CraftBukkit end
 
         this.players.add(player);
         this.markSortPending();
@@ -341,6 +354,7 @@ public class PlayerChunkMap
             int j1 = i - k;
             int k1 = j - l;
 
+            List<ChunkPos> chunksToLoad = new java.util.LinkedList<ChunkPos>(); // CraftBukkit
             if (j1 != 0 || k1 != 0)
             {
                 for (int l1 = i - i1; l1 <= i + i1; ++l1)
@@ -349,7 +363,7 @@ public class PlayerChunkMap
                     {
                         if (!this.overlaps(l1, i2, k, l, i1))
                         {
-                            this.getOrCreateEntry(l1, i2).addPlayer(player);
+                            chunksToLoad.add(new ChunkPos(l1, i2)); // CraftBukkit
                         }
 
                         if (!this.overlaps(l1 - j1, i2 - k1, i, j, i1))
@@ -367,6 +381,9 @@ public class PlayerChunkMap
                 player.managedPosX = player.posX;
                 player.managedPosZ = player.posZ;
                 this.markSortPending();
+                // CraftBukkit start - send nearest chunks first
+                Collections.sort(chunksToLoad, new net.minecraftforge.common.util.ChunkCoordComparator(player));
+                for (ChunkPos pair : chunksToLoad) this.getOrCreateEntry(pair.x, pair.z).addPlayer(player); // CraftBukkit end
             }
         }
     }

@@ -287,7 +287,7 @@ public class PacketBuffer extends ByteBuf
             {
                 CompressedStreamTools.write(nbt, new ByteBufOutputStream(this));
             }
-            catch (IOException ioexception)
+            catch (Exception ioexception) // CraftBukkit - IOException -> Exception
             {
                 throw new EncoderException(ioexception);
             }
@@ -323,7 +323,7 @@ public class PacketBuffer extends ByteBuf
 
     public PacketBuffer writeItemStack(ItemStack stack)
     {
-        if (stack.isEmpty())
+        if (stack.getItem() == null || stack.isEmpty()) // CraftBukkit - NPE fix stack.getItem()
         {
             this.writeShort(-1);
         }
@@ -359,6 +359,7 @@ public class PacketBuffer extends ByteBuf
             int k = this.readShort();
             ItemStack itemstack = new ItemStack(Item.getItemById(i), j, k);
             itemstack.setTagCompound(this.readCompoundTag());
+            if (itemstack.getTagCompound() != null) org.bukkit.craftbukkit.inventory.CraftItemStack.setItemMeta(itemstack, org.bukkit.craftbukkit.inventory.CraftItemStack.getItemMeta(itemstack)); // CraftBukkit
             return itemstack;
         }
     }

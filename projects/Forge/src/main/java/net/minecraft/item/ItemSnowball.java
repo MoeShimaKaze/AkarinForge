@@ -23,18 +23,27 @@ public class ItemSnowball extends Item
     {
         ItemStack itemstack = playerIn.getHeldItem(handIn);
 
+        // CraftBukkit start
+        /*
         if (!playerIn.capabilities.isCreativeMode)
         {
             itemstack.shrink(1);
         }
 
         worldIn.playSound((EntityPlayer)null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
+        */
 
         if (!worldIn.isRemote)
         {
             EntitySnowball entitysnowball = new EntitySnowball(worldIn, playerIn);
             entitysnowball.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
-            worldIn.spawnEntity(entitysnowball);
+            // CraftBukkit start
+            if (worldIn.spawnEntity(entitysnowball)) {
+                if (!playerIn.capabilities.isCreativeMode) itemstack.shrink(1);
+                worldIn.playSound((EntityPlayer) null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (ItemSnowball.itemRand.nextFloat() * 0.4F + 0.8F));
+            } else if (playerIn instanceof net.minecraft.entity.player.EntityPlayerMP) {
+                ((net.minecraft.entity.player.EntityPlayerMP) playerIn).getBukkitEntity().updateInventory();
+            } // CraftBukkit end
         }
 
         playerIn.addStat(StatList.getObjectUseStats(this));

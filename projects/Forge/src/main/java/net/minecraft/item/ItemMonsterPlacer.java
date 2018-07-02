@@ -220,6 +220,11 @@ public class ItemMonsterPlacer extends Item
     @Nullable
     public static Entity spawnCreature(World worldIn, @Nullable ResourceLocation entityID, double x, double y, double z)
     {
+        // CraftBukkit start
+        return spawnCreature(worldIn, entityID, x, y, z, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER_EGG);
+    }
+    @Nullable public static Entity spawnCreature(World worldIn, @Nullable ResourceLocation entityID, double x, double y, double z, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason) {
+        // CraftBukkit end
         if (entityID != null && EntityList.ENTITY_EGGS.containsKey(entityID))
         {
             Entity entity = null;
@@ -235,8 +240,12 @@ public class ItemMonsterPlacer extends Item
                     entityliving.rotationYawHead = entityliving.rotationYaw;
                     entityliving.renderYawOffset = entityliving.rotationYaw;
                     entityliving.onInitialSpawn(worldIn.getDifficultyForLocation(new BlockPos(entityliving)), (IEntityLivingData)null);
-                    worldIn.spawnEntity(entity);
-                    entityliving.playLivingSound();
+                    // CraftBukkit start - don't return an entity when CreatureSpawnEvent is canceled
+                    if (!worldIn.addEntity(entity, spawnReason)) {
+                        entity = null;
+                    } else {
+                        entityliving.playLivingSound();
+                    } // CraftBukkit end
                 }
             }
 

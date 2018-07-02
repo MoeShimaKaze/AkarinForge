@@ -195,6 +195,14 @@ public class ItemSkull extends Item
         }
         else
         {
+            // CraftBukkit start
+            net.minecraft.nbt.NBTTagList textures = nbt.getCompoundTag("SkullOwner").getCompoundTag("Properties").getTagList("textures", 10); // Safe due to method contracts
+            for (int i = 0; i < textures.tagCount(); i++) {
+                if (textures.getCompoundTagAt(i) instanceof NBTTagCompound && !((NBTTagCompound) textures.getCompoundTagAt(i)).hasKey("Signature", 8) && ((NBTTagCompound) textures.getCompoundTagAt(i)).getString("Value").trim().isEmpty()) {
+                    nbt.removeTag("SkullOwner");
+                    break;
+                }
+            } // CraftBukkit end
             return false;
         }
     }

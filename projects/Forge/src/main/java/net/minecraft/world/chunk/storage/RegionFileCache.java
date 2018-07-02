@@ -91,6 +91,19 @@ public class RegionFileCache
         RegionFile regionfile = createOrLoadRegionFile(worldDir, chunkX, chunkZ);
         return regionfile.getChunkDataInputStream(chunkX & 31, chunkZ & 31);
     }
+    // CraftBukkit start - call sites hoisted for synchronization
+    public static synchronized net.minecraft.nbt.NBTTagCompound getChunkData(File worldDir, int chunkX, int chunkZ) throws IOException {
+        RegionFile regionfile = createOrLoadRegionFile(worldDir, chunkX, chunkZ);;
+        DataInputStream datainputstream = regionfile.getChunkDataInputStream(chunkX & 31, chunkZ & 31);
+        if (datainputstream == null) return null;
+        return net.minecraft.nbt.CompressedStreamTools.read(datainputstream);
+    }
+    public static synchronized void writeChunkData(File file, int chunkX, int chunkZ, net.minecraft.nbt.NBTTagCompound nbttagcompound) throws IOException {
+        RegionFile regionfile = createOrLoadRegionFile(file, chunkX, chunkZ);
+        DataOutputStream dataoutputstream = regionfile.getChunkDataOutputStream(chunkX & 31, chunkZ & 31);
+        net.minecraft.nbt.CompressedStreamTools.write(nbttagcompound, (java.io.DataOutput) dataoutputstream);
+        dataoutputstream.close();
+    } // CraftBukkit end
 
     public static DataOutputStream getChunkOutputStream(File worldDir, int chunkX, int chunkZ)
     {

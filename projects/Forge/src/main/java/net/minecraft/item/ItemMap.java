@@ -36,16 +36,18 @@ public class ItemMap extends ItemMapBase
 
     public static ItemStack setupNewMap(World worldIn, double worldX, double worldZ, byte scale, boolean trackingPosition, boolean unlimitedTracking)
     {
-        ItemStack itemstack = new ItemStack(Items.FILLED_MAP, 1, worldIn.getUniqueDataId("map"));
+        World worldMain = worldIn.getServer().getServer().worlds.get(0); // CraftBukkit - store reference to primary world
+        ItemStack itemstack = new ItemStack(Items.FILLED_MAP, 1, worldMain.getUniqueDataId("map")); // CraftBukkit - use primary world for maps
         String s = "map_" + itemstack.getMetadata();
         MapData mapdata = new MapData(s);
-        worldIn.setData(s, mapdata);
+        worldMain.setData(s, (net.minecraft.world.storage.WorldSavedData) mapdata); // CraftBukkit
         mapdata.scale = scale;
         mapdata.calculateMapCenter(worldX, worldZ, mapdata.scale);
-        mapdata.dimension = worldIn.provider.getDimension();
+        mapdata.dimension = ((net.minecraft.world.WorldServer) worldIn).dimension; // CraftBukkit - use bukkit dimension
         mapdata.trackingPosition = trackingPosition;
         mapdata.unlimitedTracking = unlimitedTracking;
         mapdata.markDirty();
+        org.bukkit.craftbukkit.event.CraftEventFactory.callEvent(new org.bukkit.event.server.MapInitializeEvent(mapdata.mapView)); // CraftBukkit
         return itemstack;
     }
 
@@ -60,19 +62,24 @@ public class ItemMap extends ItemMapBase
     @Nullable
     public MapData getMapData(ItemStack stack, World worldIn)
     {
+        World worldMain = worldIn.getServer().getServer().worlds.get(0); // CraftBukkit - store reference to primary world
         String s = "map_" + stack.getMetadata();
-        MapData mapdata = (MapData)worldIn.loadData(MapData.class, s);
+        MapData mapdata = (MapData) worldMain.loadData(MapData.class, s); // CraftBukkit - use primary world for maps
 
         if (mapdata == null && !worldIn.isRemote)
         {
-            stack.setItemDamage(worldIn.getUniqueDataId("map"));
+            stack.setItemDamage(worldMain.getUniqueDataId("map")); // CraftBukkit - use primary world for maps
             s = "map_" + stack.getMetadata();
             mapdata = new MapData(s);
             mapdata.scale = 3;
             mapdata.calculateMapCenter((double)worldIn.getWorldInfo().getSpawnX(), (double)worldIn.getWorldInfo().getSpawnZ(), mapdata.scale);
-            mapdata.dimension = worldIn.provider.getDimension();
+            mapdata.dimension = ((net.minecraft.world.WorldServer) world).dimension; // CraftBukkit - fixes Bukkit multiworld maps
             mapdata.markDirty();
-            worldIn.setData(s, mapdata);
+            worldMain.setData(s, mapdata); // CraftBukkit - use primary world for maps
+            // CraftBukkit start
+            org.bukkit.event.server.MapInitializeEvent event = new org.bukkit.event.server.MapInitializeEvent(mapdata.mapView);
+            org.bukkit.Bukkit.getServer().getPluginManager().callEvent(event);
+            // CraftBukkit end
         }
 
         return mapdata;
@@ -80,7 +87,7 @@ public class ItemMap extends ItemMapBase
 
     public void updateMapData(World worldIn, Entity viewer, MapData data)
     {
-        if (worldIn.provider.getDimension() == data.dimension && viewer instanceof EntityPlayer)
+        if (((net.minecraft.world.WorldServer) worldIn).dimension == data.dimension && viewer instanceof EntityPlayer) // CraftBukkit - world.worldProvider -> ((WorldServer) world)
         {
             int i = 1 << data.scale;
             int j = data.xCenter;
@@ -425,6 +432,7 @@ public class ItemMap extends ItemMapBase
     protected static void scaleMap(ItemStack p_185063_0_, World p_185063_1_, int p_185063_2_)
     {
         MapData mapdata = Items.FILLED_MAP.getMapData(p_185063_0_, p_185063_1_);
+        p_185063_1_ = p_185063_1_.getServer().getServer().worlds.get(0); // CraftBukkit - use primary world for maps
         p_185063_0_.setItemDamage(p_185063_1_.getUniqueDataId("map"));
         MapData mapdata1 = new MapData("map_" + p_185063_0_.getMetadata());
 
@@ -436,12 +444,17 @@ public class ItemMap extends ItemMapBase
             mapdata1.dimension = mapdata.dimension;
             mapdata1.markDirty();
             p_185063_1_.setData("map_" + p_185063_0_.getMetadata(), mapdata1);
+            // CraftBukkit start
+            org.bukkit.event.server.MapInitializeEvent event = new org.bukkit.event.server.MapInitializeEvent(mapdata1.mapView);
+            org.bukkit.Bukkit.getServer().getPluginManager().callEvent(event);
+            // CraftBukkit end
         }
     }
 
     protected static void enableMapTracking(ItemStack p_185064_0_, World p_185064_1_)
     {
         MapData mapdata = Items.FILLED_MAP.getMapData(p_185064_0_, p_185064_1_);
+        p_185064_1_ = p_185064_1_.getServer().getServer().worlds.get(0); // CraftBukkit - use primary world for maps
         p_185064_0_.setItemDamage(p_185064_1_.getUniqueDataId("map"));
         MapData mapdata1 = new MapData("map_" + p_185064_0_.getMetadata());
         mapdata1.trackingPosition = true;
@@ -454,6 +467,10 @@ public class ItemMap extends ItemMapBase
             mapdata1.dimension = mapdata.dimension;
             mapdata1.markDirty();
             p_185064_1_.setData("map_" + p_185064_0_.getMetadata(), mapdata1);
+            // CraftBukkit start
+            org.bukkit.event.server.MapInitializeEvent event = new org.bukkit.event.server.MapInitializeEvent(mapdata1.mapView);
+            org.bukkit.Bukkit.getServer().getPluginManager().callEvent(event);
+            // CraftBukkit end
         }
     }
 

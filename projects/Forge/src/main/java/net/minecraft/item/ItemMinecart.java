@@ -64,15 +64,39 @@ public class ItemMinecart extends Item
                 }
             }
 
-            EntityMinecart entityminecart = EntityMinecart.create(world, d0, d1 + d3, d2, ((ItemMinecart)stack.getItem()).minecartType);
+            // CraftBukkit start
+            ItemStack itemstack1 = stack.splitStack(1);
+            org.bukkit.block.Block block2 = world.getWorld().getBlockAt(source.getBlockPos().getX(), source.getBlockPos().getY(), source.getBlockPos().getZ());
+            org.bukkit.craftbukkit.inventory.CraftItemStack craftItem = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemstack1);
+            org.bukkit.event.block.BlockDispenseEvent event = new org.bukkit.event.block.BlockDispenseEvent(block2, craftItem.clone(), new org.bukkit.util.Vector(d0, d1 + d3, d2));
+            if (!BlockDispenser.eventFired) world.getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                stack.grow(1);
+                return stack;
+            }
+            if (!event.getItem().equals(craftItem)) {
+                stack.grow(1);
+                ItemStack eventStack = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()); // Chain to handler for new item
+                IBehaviorDispenseItem idispensebehavior = (IBehaviorDispenseItem) BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.getObject(eventStack.getItem());
+                if (idispensebehavior != IBehaviorDispenseItem.DEFAULT_BEHAVIOR && idispensebehavior != this) {
+                    idispensebehavior.dispense(source, eventStack);
+                    return stack;
+                }
+            }
+            itemstack1 = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem());
+            EntityMinecart entityminecart = EntityMinecart.create(world, event.getVelocity().getX(), event.getVelocity().getY(), event.getVelocity().getZ(), ((ItemMinecart) itemstack1.getItem()).minecartType);
+            // CraftBukkit end
 
             if (stack.hasDisplayName())
             {
                 entityminecart.setCustomNameTag(stack.getDisplayName());
             }
 
+            /* // CraftBukkit start
             world.spawnEntity(entityminecart);
             stack.shrink(1);
+            */ // CraftBukkit end
+            if (!world.spawnEntity(entityminecart)) stack.grow(1); // CraftBukkit
             return stack;
         }
         protected void playDispenseSound(IBlockSource source)
@@ -119,7 +143,7 @@ public class ItemMinecart extends Item
                     entityminecart.setCustomNameTag(itemstack.getDisplayName());
                 }
 
-                worldIn.spawnEntity(entityminecart);
+                if (!worldIn.spawnEntity(entityminecart)) return EnumActionResult.PASS; // CraftBukkit
             }
 
             itemstack.shrink(1);

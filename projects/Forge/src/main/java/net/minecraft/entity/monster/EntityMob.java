@@ -111,7 +111,11 @@ public abstract class EntityMob extends EntityCreature implements IMob
 
             if (j > 0)
             {
-                entityIn.setFire(j * 4);
+                // CraftBukkit start - Call a combust event when somebody hits with a fire enchanted item
+                org.bukkit.event.entity.EntityCombustByEntityEvent combustEvent = new org.bukkit.event.entity.EntityCombustByEntityEvent(this.getBukkitEntity(), entityIn.getBukkitEntity(), j * 4);
+                org.bukkit.Bukkit.getPluginManager().callEvent(combustEvent);
+                if (!combustEvent.isCancelled()) entityIn.setFire(combustEvent.getDuration());
+                // CraftBukkit end
             }
 
             if (entityIn instanceof EntityPlayer)

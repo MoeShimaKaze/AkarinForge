@@ -25,6 +25,16 @@ public class PhaseManager
             {
                 this.phase.removeAreaEffect();
             }
+            // CraftBukkit start - Call EnderDragonChangePhaseEvent
+            org.bukkit.event.entity.EnderDragonChangePhaseEvent event = new org.bukkit.event.entity.EnderDragonChangePhaseEvent(
+                    (org.bukkit.craftbukkit.entity.CraftEnderDragon) this.dragon.getBukkitEntity(),
+                    (this.phase == null) ? null : org.bukkit.craftbukkit.entity.CraftEnderDragon.getBukkitPhase(this.phase.getType()),
+                            org.bukkit.craftbukkit.entity.CraftEnderDragon.getBukkitPhase(phaseIn)
+            );
+            this.dragon.world.getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) return;
+            phaseIn = org.bukkit.craftbukkit.entity.CraftEnderDragon.getMinecraftPhase(event.getNewPhase());
+            // CraftBukkit end
 
             this.phase = this.getPhase(phaseIn);
 

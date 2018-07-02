@@ -27,8 +27,10 @@ public class SPacketWorldBorder implements Packet<INetHandlerPlayClient>
     public SPacketWorldBorder(WorldBorder border, SPacketWorldBorder.Action actionIn)
     {
         this.action = actionIn;
-        this.centerX = border.getCenterX();
-        this.centerZ = border.getCenterZ();
+        // CraftBukkit start - multiply out nether border
+        this.centerX = border.getCenterX() * (border.world.provider instanceof net.minecraft.world.WorldProviderHell ? 8 : 1);
+        this.centerZ = border.getCenterZ() * (border.world.provider instanceof net.minecraft.world.WorldProviderHell ? 8 : 1);
+        // CraftBukkit end
         this.diameter = border.getDiameter();
         this.targetSize = border.getTargetSize();
         this.timeUntilTarget = border.getTimeUntilTarget();

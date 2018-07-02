@@ -68,8 +68,12 @@ public class EntityRabbit extends EntityAnimal
         this.setSize(0.4F, 0.5F);
         this.jumpHelper = new EntityRabbit.RabbitJumpHelper(this);
         this.moveHelper = new EntityRabbit.RabbitMoveHelper(this);
-        this.setMovementSpeed(0.0D);
+        this.initializePathFinderGoals(); // CraftBukkit
     }
+    // CraftBukkit start
+    public void initializePathFinderGoals(){
+        this.setMovementSpeed(0.0D);
+    } // CraftBukkit end
 
     protected void initEntityAI()
     {
@@ -587,11 +591,18 @@ public class EntityRabbit extends EntityAnimal
 
                         if (integer.intValue() == 0)
                         {
+                            if (org.bukkit.craftbukkit.event.CraftEventFactory.callEntityChangeBlockEvent(this.rabbit, blockpos, Blocks.AIR, 0).isCancelled()) return; // CraftBukkit
                             world.setBlockState(blockpos, Blocks.AIR.getDefaultState(), 2);
                             world.destroyBlock(blockpos, true);
                         }
                         else
                         {
+                            // CraftBukkit start
+                            if (org.bukkit.craftbukkit.event.CraftEventFactory.callEntityChangeBlockEvent(
+                                    this.rabbit,
+                                    blockpos, block, block.getMetaFromState(iblockstate.withProperty(BlockCarrot.AGE, Integer.valueOf(integer.intValue() - 1)))
+                            ).isCancelled()) return;
+                            // CraftBukkit end
                             world.setBlockState(blockpos, iblockstate.withProperty(BlockCarrot.AGE, Integer.valueOf(integer.intValue() - 1)), 2);
                             world.playEvent(2001, blockpos, Block.getStateId(iblockstate));
                         }

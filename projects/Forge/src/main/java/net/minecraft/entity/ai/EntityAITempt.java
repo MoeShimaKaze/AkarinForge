@@ -17,7 +17,7 @@ public class EntityAITempt extends EntityAIBase
     private double targetZ;
     private double pitch;
     private double yaw;
-    private EntityPlayer temptingPlayer;
+    private net.minecraft.entity.EntityLivingBase temptingPlayer; // CraftBukkit
     private int delayTemptCounter;
     private boolean isRunning;
     private final Set<Item> temptItem;
@@ -53,6 +53,14 @@ public class EntityAITempt extends EntityAIBase
         {
             this.temptingPlayer = this.temptedEntity.world.getClosestPlayerToEntity(this.temptedEntity, 10.0D);
 
+            // CraftBukkit start
+            boolean tempt = this.temptingPlayer == null ? false : this.isTempting(this.temptingPlayer.getHeldItemMainhand()) || this.isTempting(this.temptingPlayer.getHeldItemOffhand());
+            if (tempt) {
+                org.bukkit.event.entity.EntityTargetLivingEntityEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callEntityTargetLivingEvent(this.temptedEntity, this.temptingPlayer, org.bukkit.event.entity.EntityTargetEvent.TargetReason.TEMPT);
+                if (event.isCancelled()) return false;
+                this.temptingPlayer = (event.getTarget() == null) ? null : ((org.bukkit.craftbukkit.entity.CraftLivingEntity) event.getTarget()).getHandle();
+            } return tempt;
+            /*
             if (this.temptingPlayer == null)
             {
                 return false;
@@ -61,6 +69,7 @@ public class EntityAITempt extends EntityAIBase
             {
                 return this.isTempting(this.temptingPlayer.getHeldItemMainhand()) || this.isTempting(this.temptingPlayer.getHeldItemOffhand());
             }
+            */ // CraftBukkit end
         }
     }
 

@@ -418,8 +418,16 @@ public class EntityShulker extends EntityGolem implements IMob
                     {
                         if (this.world.isBlockNormalCube(blockpos1.offset(enumfacing), false))
                         {
+                            // CraftBukkit start
+                            org.bukkit.event.entity.EntityTeleportEvent teleport = new org.bukkit.event.entity.EntityTeleportEvent(this.getBukkitEntity(), this.getBukkitEntity().getLocation(), new org.bukkit.Location(this.world.getWorld(), blockpos1.getX(), blockpos1.getY(), blockpos1.getZ()));
+                            this.world.getServer().getPluginManager().callEvent(teleport);
+                            if (!teleport.isCancelled()) {
+                            org.bukkit.Location to = teleport.getTo();
+                            blockpos1 = new BlockPos(to.getX(), to.getY(), to.getZ());
+                            // CraftBukkit end
                             this.dataManager.set(ATTACHED_FACE, enumfacing);
                             flag = true;
+                            } // CraftBukkit
                             break;
                         }
                     }

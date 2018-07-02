@@ -92,7 +92,7 @@ public abstract class EntityAITarget extends EntityAIBase
                     }
                     else
                     {
-                        this.taskOwner.setAttackTarget(entitylivingbase);
+                        this.taskOwner.setAttackTarget(entitylivingbase, org.bukkit.event.entity.EntityTargetEvent.TargetReason.CLOSEST_ENTITY, true); // CraftBukkit
                         return true;
                     }
                 }
@@ -115,7 +115,7 @@ public abstract class EntityAITarget extends EntityAIBase
 
     public void resetTask()
     {
-        this.taskOwner.setAttackTarget((EntityLivingBase)null);
+        this.taskOwner.setAttackTarget((EntityLivingBase)null, org.bukkit.event.entity.EntityTargetEvent.TargetReason.FORGOT_TARGET, true); // CraftBukkit
         this.target = null;
     }
 

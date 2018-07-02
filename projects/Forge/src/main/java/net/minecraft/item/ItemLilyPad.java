@@ -52,14 +52,18 @@ public class ItemLilyPad extends ItemColored
                 {
                     // special case for handling block placement with water lilies
                     net.minecraftforge.common.util.BlockSnapshot blocksnapshot = net.minecraftforge.common.util.BlockSnapshot.getBlockSnapshot(worldIn, blockpos1);
-                    worldIn.setBlockState(blockpos1, Blocks.WATERLILY.getDefaultState());
-                    if (net.minecraftforge.event.ForgeEventFactory.onPlayerBlockPlace(playerIn, blocksnapshot, net.minecraft.util.EnumFacing.UP, handIn).isCanceled())
-                    {
+                    // worldIn.setBlockState(blockpos1, Blocks.WATERLILY.getDefaultState()); // Akarin Forge
+
+                    org.bukkit.block.BlockState blockstate = org.bukkit.craftbukkit.block.CraftBlockState.getBlockState(worldIn, blockpos1.getX(), blockpos1.getY(), blockpos1.getZ()); // CraftBukkit
+                    worldIn.setBlockState(blockpos1, Blocks.WATERLILY.getDefaultState(), 11);
+                    // CraftBukkit start - special case for handling block placement with water lilies
+                    org.bukkit.event.block.BlockPlaceEvent placeEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callBlockPlaceEvent(worldIn, playerIn, handIn, blockstate, blockpos.getX(), blockpos.getY(), blockpos.getZ());
+                    if ((placeEvent != null && (placeEvent.isCancelled() || !placeEvent.canBuild())) || net.minecraftforge.event.ForgeEventFactory.onPlayerBlockPlace(playerIn, blocksnapshot, net.minecraft.util.EnumFacing.UP, handIn).isCanceled()) {
                         blocksnapshot.restore(true, false);
+                        blockstate.update(true, false); // Akarin Forge
                         return new ActionResult<ItemStack>(EnumActionResult.FAIL, itemstack);
                     }
-
-                    worldIn.setBlockState(blockpos1, Blocks.WATERLILY.getDefaultState(), 11);
+                    // CraftBukkit end
 
                     if (playerIn instanceof EntityPlayerMP)
                     {

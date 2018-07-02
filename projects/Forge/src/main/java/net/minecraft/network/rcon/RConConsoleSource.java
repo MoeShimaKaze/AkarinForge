@@ -21,6 +21,10 @@ public class RConConsoleSource implements ICommandSender
     {
         return "Rcon";
     }
+    // CraftBukkit start - Send a String
+    public void sendMessage(String message) {
+        this.buffer.append(message);
+    } // CraftBukkit end
 
     public void sendMessage(ITextComponent component)
     {

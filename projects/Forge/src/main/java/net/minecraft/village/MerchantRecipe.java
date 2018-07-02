@@ -14,6 +14,16 @@ public class MerchantRecipe
     private int toolUses;
     private int maxTradeUses;
     private boolean rewardsExp;
+    // CraftBukkit start
+    private org.bukkit.craftbukkit.inventory.CraftMerchantRecipe bukkitHandle;
+
+    public org.bukkit.craftbukkit.inventory.CraftMerchantRecipe asBukkit() {
+        return (bukkitHandle == null) ? bukkitHandle = new org.bukkit.craftbukkit.inventory.CraftMerchantRecipe(this) : bukkitHandle;
+    }
+    public MerchantRecipe(ItemStack itemstack, ItemStack itemstack1, ItemStack itemstack2, int i, int j, org.bukkit.craftbukkit.inventory.CraftMerchantRecipe bukkit) {
+        this(itemstack, itemstack1, itemstack2, i, j);
+        this.bukkitHandle = bukkit;
+    } // CraftBukkit end
 
     public MerchantRecipe(NBTTagCompound tagCompound)
     {

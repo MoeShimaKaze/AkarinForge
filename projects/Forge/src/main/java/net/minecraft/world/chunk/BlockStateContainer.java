@@ -164,7 +164,20 @@ public class BlockStateContainer implements IBlockStatePaletteResizer
             int l = i >> 4 & 15;
             int i1 = blockIdExtension == null ? 0 : blockIdExtension.get(j, k, l);
             int j1 = i1 << 12 | (blockIds[i] & 255) << 4 | data.get(j, k, l);
-            this.set(i, Block.BLOCK_STATE_IDS.getByValue(j1));
+            // CraftBukkit start - fix blocks with random data values (caused by plugins)
+            IBlockState state = Block.BLOCK_STATE_IDS.getByValue(j1);
+            if (state == null) {
+                Block block = Block.getBlockById(j1 >> 4);
+                if (block != null) {
+                    try {
+                        state = block.getStateFromMeta(j1 & 0xF);
+                    } catch (Exception ignored) {
+                        state = block.getDefaultState();
+                    }
+                }
+            }
+            this.set(i, state);
+            // CraftBukkit end
         }
     }
 

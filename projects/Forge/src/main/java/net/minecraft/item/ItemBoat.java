@@ -84,6 +84,10 @@ public class ItemBoat extends Item
             }
             else
             {
+                // CraftBukkit start - Boat placement
+                org.bukkit.event.player.PlayerInteractEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerInteractEvent(playerIn, org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK, raytraceresult.getBlockPos(), raytraceresult.sideHit, itemstack, handIn);
+                if (event.isCancelled()) return new ActionResult(EnumActionResult.PASS, itemstack);
+                // CraftBukkit end
                 Block block = worldIn.getBlockState(raytraceresult.getBlockPos()).getBlock();
                 boolean flag1 = block == Blocks.WATER || block == Blocks.FLOWING_WATER;
                 EntityBoat entityboat = new EntityBoat(worldIn, raytraceresult.hitVec.x, flag1 ? raytraceresult.hitVec.y - 0.12D : raytraceresult.hitVec.y, raytraceresult.hitVec.z);
@@ -98,7 +102,7 @@ public class ItemBoat extends Item
                 {
                     if (!worldIn.isRemote)
                     {
-                        worldIn.spawnEntity(entityboat);
+                        if (!worldIn.spawnEntity(entityboat)) return new ActionResult<ItemStack>(EnumActionResult.PASS, itemstack); // CraftBukkit
                     }
 
                     if (!playerIn.capabilities.isCreativeMode)

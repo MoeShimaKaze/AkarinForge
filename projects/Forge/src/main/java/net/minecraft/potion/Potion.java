@@ -78,14 +78,14 @@ public class Potion extends net.minecraftforge.registries.IForgeRegistryEntry.Im
         {
             if (entityLivingBaseIn.getHealth() < entityLivingBaseIn.getMaxHealth())
             {
-                entityLivingBaseIn.heal(1.0F);
+                entityLivingBaseIn.heal(1.0F, org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.MAGIC_REGEN); // CraftBukkit
             }
         }
         else if (this == MobEffects.POISON)
         {
             if (entityLivingBaseIn.getHealth() > 1.0F)
             {
-                entityLivingBaseIn.attackEntityFrom(DamageSource.MAGIC, 1.0F);
+                entityLivingBaseIn.attackEntityFrom(org.bukkit.craftbukkit.event.CraftEventFactory.POISON, 1.0F);  // CraftBukkit - DamageSource.MAGIC -> CraftEventFactory.POISON
             }
         }
         else if (this == MobEffects.WITHER)
@@ -100,7 +100,13 @@ public class Potion extends net.minecraftforge.registries.IForgeRegistryEntry.Im
         {
             if (!entityLivingBaseIn.world.isRemote)
             {
-                ((EntityPlayer)entityLivingBaseIn).getFoodStats().addStats(amplifier + 1, 1.0F);
+                // CraftBukkit start
+                EntityPlayer entityhuman = (EntityPlayer) entityLivingBaseIn;
+                int oldFoodLevel = entityhuman.getFoodStats().foodLevel;
+                org.bukkit.event.entity.FoodLevelChangeEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callFoodLevelChangeEvent(entityhuman, amplifier + 1 + oldFoodLevel);
+                if (!event.isCancelled()) entityhuman.getFoodStats().addStats(event.getFoodLevel() - oldFoodLevel, 1.0F);
+                ((net.minecraft.entity.player.EntityPlayerMP) entityhuman).connection.sendPacket(new net.minecraft.network.play.server.SPacketUpdateHealth(((net.minecraft.entity.player.EntityPlayerMP) entityhuman).getBukkitEntity().getScaledHealth(), entityhuman.getFoodStats().foodLevel, entityhuman.getFoodStats().foodSaturationLevel));
+                // CraftBukkit end
             }
         }
         else if ((this != MobEffects.INSTANT_HEALTH || entityLivingBaseIn.isEntityUndead()) && (this != MobEffects.INSTANT_DAMAGE || !entityLivingBaseIn.isEntityUndead()))
@@ -112,7 +118,7 @@ public class Potion extends net.minecraftforge.registries.IForgeRegistryEntry.Im
         }
         else
         {
-            entityLivingBaseIn.heal((float)Math.max(4 << amplifier, 0));
+            entityLivingBaseIn.heal((float)Math.max(4 << amplifier, 0), org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.MAGIC); // CraftBukkit
         }
     }
 
@@ -137,7 +143,7 @@ public class Potion extends net.minecraftforge.registries.IForgeRegistryEntry.Im
         else
         {
             int i = (int)(health * (double)(4 << amplifier) + 0.5D);
-            entityLivingBaseIn.heal((float)i);
+            entityLivingBaseIn.heal((float)i, org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.MAGIC); // CraftBukkit
         }
     }
 
@@ -411,5 +417,6 @@ public class Potion extends net.minecraftforge.registries.IForgeRegistryEntry.Im
         REGISTRY.register(25, new ResourceLocation("levitation"), (new Potion(true, 13565951)).setPotionName("effect.levitation").setIconIndex(3, 2));
         REGISTRY.register(26, new ResourceLocation("luck"), (new Potion(false, 3381504)).setPotionName("effect.luck").setIconIndex(5, 2).setBeneficial().registerPotionAttributeModifier(SharedMonsterAttributes.LUCK, "03C3C89D-7037-4B42-869F-B146BCB64D2E", 1.0D, 0));
         REGISTRY.register(27, new ResourceLocation("unluck"), (new Potion(true, 12624973)).setPotionName("effect.unluck").setIconIndex(6, 2).registerPotionAttributeModifier(SharedMonsterAttributes.LUCK, "CC5AF142-2BD2-4215-B636-2605AED11727", -1.0D, 0));
+        for (Object effect : REGISTRY) org.bukkit.potion.PotionEffectType.registerPotionEffectType(new org.bukkit.craftbukkit.potion.CraftPotionEffectType((Potion) effect)); // CraftBukkit
     }
 }

@@ -55,7 +55,7 @@ public class ItemBlock extends Item
             {
                 iblockstate1 = worldIn.getBlockState(pos);
                 SoundType soundtype = iblockstate1.getBlock().getSoundType(iblockstate1, worldIn, pos, player);
-                worldIn.playSound(player, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+                // worldIn.playSound(player, pos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F); // CraftBukkit - SPIGOT-1288
                 itemstack.shrink(1);
             }
 

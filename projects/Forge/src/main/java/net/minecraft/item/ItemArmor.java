@@ -63,6 +63,27 @@ public class ItemArmor extends Item
             EntityLivingBase entitylivingbase = list.get(0);
             EntityEquipmentSlot entityequipmentslot = EntityLiving.getSlotForItemStack(stack);
             ItemStack itemstack = stack.splitStack(1);
+            // CraftBukkit start
+            World world = blockSource.getWorld();
+            org.bukkit.block.Block block = world.getWorld().getBlockAt(blockSource.getBlockPos().getX(), blockSource.getBlockPos().getY(), blockSource.getBlockPos().getZ());
+            org.bukkit.craftbukkit.inventory.CraftItemStack craftItem = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemstack);
+            org.bukkit.event.block.BlockDispenseEvent event = new org.bukkit.event.block.BlockDispenseEvent(block, craftItem.clone(), new org.bukkit.util.Vector(0, 0, 0));
+            if (!BlockDispenser.eventFired) {
+                world.getServer().getPluginManager().callEvent(event);
+            }
+            if (event.isCancelled()) {
+                stack.grow(1);
+                return stack;
+            }
+            if (!event.getItem().equals(craftItem)) {
+                stack.grow(1);
+                ItemStack eventStack = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getItem()); // Chain to handler for new item
+                IBehaviorDispenseItem idispensebehavior = (IBehaviorDispenseItem) BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.getObject(eventStack.getItem());
+                if (idispensebehavior != IBehaviorDispenseItem.DEFAULT_BEHAVIOR && idispensebehavior != ItemArmor.DISPENSER_BEHAVIOR) {
+                    idispensebehavior.dispense(blockSource, eventStack);
+                    return stack;
+                }
+            } // CraftBukkit end
             entitylivingbase.setItemStackToSlot(entityequipmentslot, itemstack);
 
             if (entitylivingbase instanceof EntityLiving)

@@ -101,7 +101,7 @@ public class EntitySnowman extends EntityGolem implements IRangedAttackMob, net.
 
             if (this.world.getBiome(new BlockPos(i, 0, k)).getTemperature(new BlockPos(i, j, k)) > 1.0F)
             {
-                this.attackEntityFrom(DamageSource.ON_FIRE, 1.0F);
+                this.attackEntityFrom(org.bukkit.craftbukkit.event.CraftEventFactory.MELTING, 1.0F); // CraftBukkit
             }
 
             if (!net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.world, this))
@@ -118,7 +118,7 @@ public class EntitySnowman extends EntityGolem implements IRangedAttackMob, net.
 
                 if (this.world.getBlockState(blockpos).getMaterial() == Material.AIR && this.world.getBiome(blockpos).getTemperature(blockpos) < 0.8F && Blocks.SNOW_LAYER.canPlaceBlockAt(this.world, blockpos))
                 {
-                    this.world.setBlockState(blockpos, Blocks.SNOW_LAYER.getDefaultState());
+                    org.bukkit.craftbukkit.event.CraftEventFactory.handleBlockFormEvent(this.world, blockpos, Blocks.SNOW_LAYER.getDefaultState(), this); // CraftBukkit
                 }
             }
         }

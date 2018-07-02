@@ -66,6 +66,11 @@ public class WorldInfo
     private final Map<Integer, NBTTagCompound> dimensionData = Maps.newHashMap();
     private GameRules gameRules = new GameRules();
     private java.util.Map<String, net.minecraft.nbt.NBTBase> additionalProperties;
+    public net.minecraft.world.WorldServer world; // CraftBukkit
+    // CraftBukkit start - Check if the name stored in NBT is the correct one
+    public void checkName(String name) {
+        if (!this.levelName.equals(name)) this.levelName = name;
+    } // CraftBukkit end
 
     protected WorldInfo()
     {
@@ -511,6 +516,13 @@ public class WorldInfo
 
     public void setThundering(boolean thunderingIn)
     {
+        // CraftBukkit start
+        org.bukkit.World world = org.bukkit.Bukkit.getWorld(getWorldName());
+        if (world != null) {
+            org.bukkit.event.weather.ThunderChangeEvent thunder = new org.bukkit.event.weather.ThunderChangeEvent(world, thunderingIn);
+            org.bukkit.Bukkit.getServer().getPluginManager().callEvent(thunder);
+            if (thunder.isCancelled()) return;
+        } // CraftBukkit end
         this.thundering = thunderingIn;
     }
 
@@ -531,6 +543,13 @@ public class WorldInfo
 
     public void setRaining(boolean isRaining)
     {
+        // CraftBukkit start
+        org.bukkit.World world = org.bukkit.Bukkit.getWorld(getWorldName());
+        if (world != null) {
+            org.bukkit.event.weather.WeatherChangeEvent weather = new org.bukkit.event.weather.WeatherChangeEvent(world, isRaining);
+            org.bukkit.Bukkit.getServer().getPluginManager().callEvent(weather);
+            if (weather.isCancelled()) return;
+        } // CraftBukkit end
         this.raining = isRaining;
     }
 
@@ -713,6 +732,11 @@ public class WorldInfo
     {
         net.minecraftforge.common.ForgeHooks.onDifficultyChange(newDifficulty, this.difficulty);
         this.difficulty = newDifficulty;
+        // CraftBukkit start
+        net.minecraft.network.play.server.SPacketServerDifficulty packet = new net.minecraft.network.play.server.SPacketServerDifficulty(this.getDifficulty(), this.isDifficultyLocked());
+        for (net.minecraft.entity.player.EntityPlayerMP player : (java.util.List<net.minecraft.entity.player.EntityPlayerMP>) (java.util.List) world.playerEntities) {
+            player.connection.sendPacket(packet);
+        } // CraftBukkit end
     }
 
     public boolean isDifficultyLocked()

@@ -41,6 +41,25 @@ public class TileEntityShulkerBox extends TileEntityLockableLoot implements ITic
     private float progressOld;
     private EnumDyeColor color;
     private boolean destroyedByCreativePlayer;
+    // CraftBukkit start - add fields and methods
+    public List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+    private int maxStack = MAX_STACK;
+
+    public List<ItemStack> getContents() {
+        return this.items;
+    }
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+    } // CraftBukkit end
 
     public TileEntityShulkerBox()
     {
@@ -199,7 +218,7 @@ public class TileEntityShulkerBox extends TileEntityLockableLoot implements ITic
 
     public int getInventoryStackLimit()
     {
-        return 64;
+        return maxStack; // CraftBukkit
     }
 
     public boolean receiveClientEvent(int id, int type)

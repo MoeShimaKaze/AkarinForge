@@ -55,6 +55,10 @@ public class EntitySheep extends EntityAnimal implements net.minecraftforge.comm
         {
             return false;
         }
+        // CraftBukkit start
+        @Override public org.bukkit.inventory.InventoryView getBukkitView() {
+            return null; // TODO: O.O
+        } // CraftBukkit end
     }, 2, 1);
     private static final Map<EnumDyeColor, float[]> DYE_TO_RGB = Maps.newEnumMap(EnumDyeColor.class);
     private int sheepTimer;
@@ -79,6 +83,7 @@ public class EntitySheep extends EntityAnimal implements net.minecraftforge.comm
         this.setSize(0.9F, 1.3F);
         this.inventoryCrafting.setInventorySlotContents(0, new ItemStack(Items.DYE));
         this.inventoryCrafting.setInventorySlotContents(1, new ItemStack(Items.DYE));
+        this.inventoryCrafting.resultInventory = new net.minecraft.inventory.InventoryCraftResult(); // CraftBukkit - add result slot for event
     }
 
     protected void initEntityAI()
@@ -348,6 +353,11 @@ public class EntitySheep extends EntityAnimal implements net.minecraftforge.comm
 
     public void eatGrassBonus()
     {
+        // CraftBukkit start
+        org.bukkit.event.entity.SheepRegrowWoolEvent event = new org.bukkit.event.entity.SheepRegrowWoolEvent((org.bukkit.entity.Sheep) this.getBukkitEntity());
+        this.world.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) return;
+        // CraftBukkit end
         this.setSheared(false);
 
         if (this.isChild())

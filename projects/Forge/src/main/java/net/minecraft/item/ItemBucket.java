@@ -72,17 +72,25 @@ public class ItemBucket extends Item
 
                     if (material == Material.WATER && ((Integer)iblockstate.getValue(BlockLiquid.LEVEL)).intValue() == 0)
                     {
+                        // CraftBukkit start
+                        org.bukkit.event.player.PlayerBucketFillEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerBucketFillEvent(playerIn, blockpos.getX(), blockpos.getY(), blockpos.getZ(), null, itemstack, Items.WATER_BUCKET);
+                        if (event.isCancelled()) return new ActionResult<ItemStack>(EnumActionResult.FAIL, itemstack);
+                        // CraftBukkit end
                         worldIn.setBlockState(blockpos, Blocks.AIR.getDefaultState(), 11);
                         playerIn.addStat(StatList.getObjectUseStats(this));
                         playerIn.playSound(SoundEvents.ITEM_BUCKET_FILL, 1.0F, 1.0F);
-                        return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, this.fillBucket(itemstack, playerIn, Items.WATER_BUCKET));
+                        return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, this.fillBucket(itemstack, playerIn, Items.WATER_BUCKET, event.getItemStack())); // CraftBukkit
                     }
                     else if (material == Material.LAVA && ((Integer)iblockstate.getValue(BlockLiquid.LEVEL)).intValue() == 0)
                     {
+                        // CraftBukkit start
+                        org.bukkit.event.player.PlayerBucketFillEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerBucketFillEvent(playerIn, blockpos.getX(), blockpos.getY(), blockpos.getZ(), null, itemstack, Items.LAVA_BUCKET);
+                        if (event.isCancelled()) return new ActionResult<ItemStack>(EnumActionResult.FAIL, itemstack);
+                        // CraftBukkit end
                         playerIn.playSound(SoundEvents.ITEM_BUCKET_FILL_LAVA, 1.0F, 1.0F);
                         worldIn.setBlockState(blockpos, Blocks.AIR.getDefaultState(), 11);
                         playerIn.addStat(StatList.getObjectUseStats(this));
-                        return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, this.fillBucket(itemstack, playerIn, Items.LAVA_BUCKET));
+                        return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, this.fillBucket(itemstack, playerIn, Items.LAVA_BUCKET, event.getItemStack())); // CraftBukkit
                     }
                     else
                     {
@@ -99,7 +107,7 @@ public class ItemBucket extends Item
                 {
                     return new ActionResult<ItemStack>(EnumActionResult.FAIL, itemstack);
                 }
-                else if (this.tryPlaceContainedLiquid(playerIn, worldIn, blockpos1))
+                else if (this.tryPlaceContainedLiquid(playerIn, worldIn, blockpos1, raytraceresult.direction, blockpos1, itemstack)) // CraftBukkit
                 {
                     if (playerIn instanceof EntityPlayerMP)
                     {
@@ -117,7 +125,7 @@ public class ItemBucket extends Item
         }
     }
 
-    private ItemStack fillBucket(ItemStack emptyBuckets, EntityPlayer player, Item fullBucket)
+    private ItemStack fillBucket(ItemStack emptyBuckets, EntityPlayer player, Item fullBucket, org.bukkit.inventory.ItemStack result) // CraftBukkit
     {
         if (player.capabilities.isCreativeMode)
         {
@@ -129,13 +137,13 @@ public class ItemBucket extends Item
 
             if (emptyBuckets.isEmpty())
             {
-                return new ItemStack(fullBucket);
+                return org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(result); // CraftBukkit
             }
             else
             {
-                if (!player.inventory.addItemStackToInventory(new ItemStack(fullBucket)))
+                if (!player.inventory.addItemStackToInventory(org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(result))) // CraftBukkit
                 {
-                    player.dropItem(new ItemStack(fullBucket), false);
+                    player.dropItem(org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(result), false); // CraftBukkit
                 }
 
                 return emptyBuckets;
@@ -145,6 +153,11 @@ public class ItemBucket extends Item
 
     public boolean tryPlaceContainedLiquid(@Nullable EntityPlayer player, World worldIn, BlockPos posIn)
     {
+        return tryPlaceContainedLiquid(player, worldIn, posIn, null, posIn, null);
+    }
+
+    public boolean tryPlaceContainedLiquid(EntityPlayer player, World worldIn, BlockPos posIn, EnumFacing enumdirection, BlockPos clicked, ItemStack itemstack) {
+        // CraftBukkit end
         if (this.containedBlock == Blocks.AIR)
         {
             return false;
@@ -162,6 +175,11 @@ public class ItemBucket extends Item
             }
             else
             {
+                // CraftBukkit start
+                if (player != null) {
+                    org.bukkit.event.player.PlayerBucketEmptyEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerBucketEmptyEvent(player, clicked.getX(), clicked.getY(), clicked.getZ(), enumdirection, itemstack);
+                    if (event.isCancelled()) return false;
+                } // CraftBukkit end
                 if (worldIn.provider.doesWaterVaporize() && this.containedBlock == Blocks.FLOWING_WATER)
                 {
                     int l = posIn.getX();

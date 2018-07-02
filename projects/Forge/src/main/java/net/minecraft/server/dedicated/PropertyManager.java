@@ -16,6 +16,19 @@ public class PropertyManager
     private static final Logger LOGGER = LogManager.getLogger();
     private final Properties serverProperties = new Properties();
     private final File serverPropertiesFile;
+    // CraftBukkit start
+    private joptsimple.OptionSet options = null;
+
+    public PropertyManager(final joptsimple.OptionSet options) {
+        this((File) options.valueOf("config"));
+        this.options = options;
+    }
+    private <T> T getOverride(String name, T value) {
+        if ((this.options != null) && (this.options.has(name)) && !name.equals("online-mode")) { // Spigot
+            return (T) this.options.valueOf(name);
+        }
+        return value;
+    } // CraftBukkit end
 
     public PropertyManager(File propertiesFile)
     {
@@ -27,6 +40,7 @@ public class PropertyManager
 
             try
             {
+                if (this.serverPropertiesFile.exists() && !this.serverPropertiesFile.canWrite()) return; // CraftBukkit - Don't attempt writing to file if it's read only
                 fileinputstream = new FileInputStream(propertiesFile);
                 this.serverProperties.load(fileinputstream);
             }
@@ -107,20 +121,20 @@ public class PropertyManager
             this.saveProperties();
         }
 
-        return this.serverProperties.getProperty(key, defaultValue);
+        return getOverride(key, this.serverProperties.getProperty(key, defaultValue)); // CraftBukkit
     }
 
     public int getIntProperty(String key, int defaultValue)
     {
         try
         {
-            return Integer.parseInt(this.getStringProperty(key, "" + defaultValue));
+            return getOverride(key, Integer.parseInt(this.getStringProperty(key, "" + defaultValue))); // CraftBukkit
         }
         catch (Exception var4)
         {
             this.serverProperties.setProperty(key, "" + defaultValue);
             this.saveProperties();
-            return defaultValue;
+            return getOverride(key, defaultValue); // CraftBukkit
         }
     }
 
@@ -128,13 +142,13 @@ public class PropertyManager
     {
         try
         {
-            return Long.parseLong(this.getStringProperty(key, "" + defaultValue));
+            return getOverride(key, Long.parseLong(this.getStringProperty(key, "" + defaultValue))); // CraftBukkit
         }
         catch (Exception var5)
         {
             this.serverProperties.setProperty(key, "" + defaultValue);
             this.saveProperties();
-            return defaultValue;
+            return getOverride(key, defaultValue); // CraftBukkit
         }
     }
 
@@ -142,13 +156,13 @@ public class PropertyManager
     {
         try
         {
-            return Boolean.parseBoolean(this.getStringProperty(key, "" + defaultValue));
+            return getOverride(key, Boolean.parseBoolean(this.getStringProperty(key, "" + defaultValue))); //CraftBukkit
         }
         catch (Exception var4)
         {
             this.serverProperties.setProperty(key, "" + defaultValue);
             this.saveProperties();
-            return defaultValue;
+            return getOverride(key, defaultValue); // CraftBukkit
         }
     }
 

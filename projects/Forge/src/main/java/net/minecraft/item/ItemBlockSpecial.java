@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 
 public class ItemBlockSpecial extends Item
 {
-    private final Block block;
+    public final Block block; // CraftBukkit - private->public
 
     public ItemBlockSpecial(Block block)
     {

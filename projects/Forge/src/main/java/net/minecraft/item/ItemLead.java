@@ -55,7 +55,16 @@ public class ItemLead extends Item
                 if (entityleashknot == null)
                 {
                     entityleashknot = EntityLeashKnot.createKnot(worldIn, fence);
+                    // CraftBukkit start - fire HangingPlaceEvent
+                    org.bukkit.event.hanging.HangingPlaceEvent event = new org.bukkit.event.hanging.HangingPlaceEvent((org.bukkit.entity.Hanging) entityleashknot.getBukkitEntity(), player != null ? (org.bukkit.entity.Player) player.getBukkitEntity() : null, worldIn.getWorld().getBlockAt(i, j, k), org.bukkit.block.BlockFace.SELF);
+                    worldIn.getServer().getPluginManager().callEvent(event);
+                    if (event.isCancelled()) {
+                        entityleashknot.setDead();
+                        return false;
+                    }
                 }
+                if (org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerLeashEntityEvent(entityliving, entityleashknot, player).isCancelled()) continue;
+                // CraftBukkit end
 
                 entityliving.setLeashHolder(entityleashknot, true);
                 flag = true;

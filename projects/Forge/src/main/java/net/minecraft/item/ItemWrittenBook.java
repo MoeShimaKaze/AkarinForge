@@ -119,6 +119,21 @@ public class ItemWrittenBook extends Item
                         String s = nbttaglist.getStringTagAt(i);
                         ITextComponent itextcomponent;
 
+                        // CraftBukkit start
+                        // Some commands use the worldserver variable but we leave it full of null values,
+                        // so we must temporarily populate it with the world of the commandsender
+                        net.minecraft.world.WorldServer[] prev = net.minecraft.server.MinecraftServer.getServer().worlds;
+                        net.minecraft.server.MinecraftServer server = net.minecraft.server.MinecraftServer.getServer();
+                        server.worlds = new net.minecraft.world.WorldServer[server.worlds.size()];
+                        server.worlds[0] = (net.minecraft.world.WorldServer) player.getEntityWorld();
+                        int bpos = 0;
+                        for (int pos = 1; pos < server.worlds.length; pos++) {
+                            net.minecraft.world.WorldServer world = server.worlds.get(bpos++);
+                            if (server.worlds[0] == world) {
+                                pos--; continue;
+                            }
+                            server.worlds[pos] = world;
+                        } // CraftBukkit end
                         try
                         {
                             itextcomponent = ITextComponent.Serializer.fromJsonLenient(s);
@@ -128,6 +143,7 @@ public class ItemWrittenBook extends Item
                         {
                             itextcomponent = new TextComponentString(s);
                         }
+                        finally { net.minecraft.server.MinecraftServer.getServer().worlds = prev; } // CraftBukkit
 
                         nbttaglist.set(i, new NBTTagString(ITextComponent.Serializer.componentToJson(itextcomponent)));
                     }

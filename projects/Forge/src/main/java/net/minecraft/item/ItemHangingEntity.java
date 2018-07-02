@@ -35,6 +35,14 @@ public class ItemHangingEntity extends Item
             {
                 if (!worldIn.isRemote)
                 {
+                    // CraftBukkit start - fire HangingPlaceEvent
+                    org.bukkit.entity.Player who = (player == null) ? null : (org.bukkit.entity.Player) player.getBukkitEntity();
+                    org.bukkit.block.Block blockClicked = world.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+                    org.bukkit.block.BlockFace blockFace = org.bukkit.craftbukkit.block.CraftBlock.notchToBlockFace(facing);
+                    org.bukkit.event.hanging.HangingPlaceEvent event = new org.bukkit.event.hanging.HangingPlaceEvent((org.bukkit.entity.Hanging) entityhanging.getBukkitEntity(), who, blockClicked, blockFace);
+                    worldIn.getServer().getPluginManager().callEvent(event);
+                    if (event.isCancelled()) return EnumActionResult.FAIL;
+                    // CraftBukkit end
                     entityhanging.playPlaceSound();
                     worldIn.spawnEntity(entityhanging);
                 }

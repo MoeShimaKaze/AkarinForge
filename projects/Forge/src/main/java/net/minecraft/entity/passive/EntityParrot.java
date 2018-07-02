@@ -247,7 +247,7 @@ public class EntityParrot extends EntityShoulderRiding implements EntityFlying
 
             if (!this.world.isRemote)
             {
-                if (this.rand.nextInt(10) == 0 && !net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, player))
+                if (this.rand.nextInt(10) == 0  && !org.bukkit.craftbukkit.event.CraftEventFactory.callEntityTameEvent(this, player).isCancelled() && !net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, player)) // CraftBukkit
                 {
                     this.setTamedBy(player);
                     this.playTameEffect(true);
@@ -420,7 +420,7 @@ public class EntityParrot extends EntityShoulderRiding implements EntityFlying
         {
             if (this.aiSit != null)
             {
-                this.aiSit.setSitting(false);
+                // this.aiSit.setSitting(false); // CraftBukkit
             }
 
             return super.attackEntityFrom(source, amount);

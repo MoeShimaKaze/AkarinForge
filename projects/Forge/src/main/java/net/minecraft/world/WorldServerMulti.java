@@ -13,10 +13,11 @@ public class WorldServerMulti extends WorldServer
     private final WorldServer delegate;
     private IBorderListener borderListener;
 
-    public WorldServerMulti(MinecraftServer server, ISaveHandler saveHandlerIn, int dimensionId, WorldServer delegate, Profiler profilerIn)
+    public WorldServerMulti(MinecraftServer server, ISaveHandler saveHandlerIn, int dimensionId, WorldServer delegate, Profiler profilerIn, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen) // CraftBukkit
     {
         super(server, saveHandlerIn, new DerivedWorldInfo(delegate.getWorldInfo()), dimensionId, profilerIn);
         this.delegate = delegate;
+        /* CraftBukkit start
         this.borderListener = new IBorderListener()
         {
             public void onSizeChanged(WorldBorder border, double newSize)
@@ -49,12 +50,15 @@ public class WorldServerMulti extends WorldServer
             }
         };
         this.delegate.getWorldBorder().addListener(this.borderListener);
+        */ // CraftBukkit end
     }
 
+    /* // CraftBukkit start // Akarin Forge - FIXME should be empty method
     protected void saveLevel() throws MinecraftException
     {
         this.perWorldStorage.saveAllData();
     }
+    */ // CraftBukkit end
 
     public World init()
     {
@@ -77,7 +81,7 @@ public class WorldServerMulti extends WorldServer
         }
 
         this.initCapabilities();
-        return this;
+        return super.init(); // CraftBukkit
     }
 
 

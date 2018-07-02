@@ -17,6 +17,23 @@ public class ShapelessRecipes extends net.minecraftforge.registries.IForgeRegist
     public final NonNullList<Ingredient> recipeItems;
     private final String group;
     private final boolean isSimple;
+    // CraftBukkit start
+    public net.minecraft.util.ResourceLocation key;
+
+    @Override public void setKey(net.minecraft.util.ResourceLocation key) {
+        this.key = key;
+    }
+    @SuppressWarnings("unchecked") public org.bukkit.inventory.ShapelessRecipe toBukkitRecipe() {
+        org.bukkit.craftbukkit.inventory.CraftItemStack result = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(this.recipeOutput);
+        org.bukkit.craftbukkit.inventory.CraftShapelessRecipe recipe = new org.bukkit.craftbukkit.inventory.CraftShapelessRecipe(result, this);
+        for (Ingredient list : this.recipeItems) {
+            if (list != null) {
+                net.minecraft.item.ItemStack stack = list.matchingStacks[0];
+                recipe.addIngredient(org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(stack.getItem()), (list.matchingStacks.length) > 1 ? 32767 : stack.getMetadata());
+            }
+        }
+        return recipe;
+    } // CraftBukkit end
 
     public ShapelessRecipes(String group, ItemStack output, NonNullList<Ingredient> ingredients)
     {
