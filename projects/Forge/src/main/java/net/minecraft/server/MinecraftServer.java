@@ -375,6 +375,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
         int j1 = 0;
         LOGGER.info("Preparing start region for level 0");
         WorldServer worldserver = net.minecraftforge.common.DimensionManager.getWorld(j1);
+        if (!worldserver.getWorld().getKeepSpawnInMemory()) continue; // CraftBukkit
         BlockPos blockpos = worldserver.getSpawnPoint();
         long k1 = getCurrentTimeMillis();
 
@@ -395,6 +396,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
             }
         }
 
+        for (WorldServer world : this.bworlds) this.server.getPluginManager().callEvent(new org.bukkit.event.world.WorldLoadEvent(world.getWorld())); // CraftBukkit
         this.clearCurrentTask();
     }
 
@@ -440,11 +442,12 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
     {
         this.currentTask = null;
         this.percentDone = 0;
+        this.server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.POSTWORLD); // CraftBukkit
     }
 
     public void saveAllWorlds(boolean isSilent)
     {
-        for (WorldServer worldserver : this.worlds)
+        for (WorldServer worldserver : this.bworlds)
         {
             if (worldserver != null)
             {
@@ -456,6 +459,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
                 try
                 {
                     worldserver.saveAllChunks(true, (IProgressUpdate)null);
+                    worldserver.flush(); // CraftBukkit
                 }
                 catch (MinecraftException minecraftexception)
                 {
@@ -465,9 +469,20 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
         }
     }
 
+    // CraftBukkit start
+    private boolean hasStopped = false;
+    private final Object stopLock = new Object();
+    // CraftBukkit end
     public void stopServer()
     {
+        // CraftBukkit start - prevent double stopping on multiple threads
+        synchronized(stopLock) {
+            if (hasStopped) return;
+            hasStopped = true;
+        }
+        // CraftBukkit end
         LOGGER.info("Stopping server");
+        if (this.server != null) this.server.disablePlugins(); // CraftBukkit
 
         if (this.getNetworkSystem() != null)
         {
@@ -479,6 +494,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
             LOGGER.info("Saving players");
             this.playerList.saveAllPlayerData();
             this.playerList.removeAllPlayers();
+            try { Thread.sleep(100); } catch (InterruptedException ex) {} // CraftBukkit - SPIGOT-625 - give server at least a chance to send packets
         }
 
         if (this.worlds != null)
@@ -495,6 +511,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 
             this.saveAllWorlds(false);
 
+            /* // CraftBukkit start
             for (WorldServer worldserver1 : this.worlds)
             {
                 if (worldserver1 != null)
@@ -503,6 +520,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
                     worldserver1.flush();
                 }
             }
+            */ // CraftBukkit end
 
             WorldServer[] tmp = worlds;
             for (WorldServer world : tmp)
@@ -549,6 +567,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 
                     if (j > 2000L && this.currentTime - this.timeOfLastWarning >= 15000L)
                     {
+                        if (server.getWarnOnOverload()) // CraftBukkit
                         LOGGER.warn("Can't keep up! Did the system time change, or is the server overloaded? Running {}ms behind, skipping {} tick(s)", Long.valueOf(j), Long.valueOf(j / 50L));
                         j = 2000L;
                         this.timeOfLastWarning = this.currentTime;
@@ -563,7 +582,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
                     i += j;
                     this.currentTime = k;
 
-                    if (this.worlds[0].areAllPlayersAsleep())
+                    if (this.bworlds.get(0).areAllPlayersAsleep()) // CraftBukkit
                     {
                         this.tick();
                         i = 0L;
@@ -572,6 +591,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
                     {
                         while (i > 50L)
                         {
+                            MinecraftServer.currentTick = (int) (System.currentTimeMillis() / 50); // CraftBukkit
                             i -= 50L;
                             this.tick();
                         }
@@ -636,6 +656,11 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
             {
                 net.minecraftforge.fml.common.FMLCommonHandler.instance().handleServerStopped();
                 this.serverStopped = true;
+                // CraftBukkit start - Restore terminal to original settings
+                try {
+                    reader.getTerminal().restore();
+                } catch (Exception ignored) {}
+                // CraftBukkit end
                 this.systemExitNow();
             }
         }
@@ -701,7 +726,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
     {
     }
 
-    public void tick()
+    public void tick() throws MinecraftException // CraftBukkit - added throws
     {
         long i = System.nanoTime();
         net.minecraftforge.fml.common.FMLCommonHandler.instance().onPreServerTick();
@@ -734,7 +759,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
             this.statusResponse.invalidateJson();
         }
 
-        if (this.tickCounter % 900 == 0)
+        if (autosavePeriod > 0 && this.tickCounter % autosavePeriod == 0) { // CraftBukkit
         {
             this.profiler.startSection("save");
             this.playerList.saveAllPlayerData();
@@ -764,6 +789,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 
     public void updateTimeLightAndEntities()
     {
+        this.server.getScheduler().mainThreadHeartbeat(this.tickCounter); // CraftBukkit
         this.profiler.startSection("jobs");
 
         synchronized (this.futureTaskQueue)
@@ -775,7 +801,16 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
         }
 
         this.profiler.endStartSection("levels");
+        while (!processQueue.isEmpty()) processQueue.remove().run(); // CraftBukkit - Run tasks that are waiting on processing
         net.minecraftforge.common.chunkio.ChunkIOExecutor.tick();
+        // CraftBukkit end
+        // Send time updates to everyone, it will get the right time from the world the player is in.
+        if (this.tickCounter % 20 == 0) {
+            for (int i = 0; i < this.getPlayerList().playerEntityList.size(); ++i) {
+                EntityPlayerMP entityplayer = (EntityPlayerMP) this.getPlayerList().playerEntityList.get(i);
+                entityplayer.connection.sendPacket(new SPacketTimeUpdate(entityplayer.world.getTotalWorldTime(), entityplayer.getPlayerTime(), entityplayer.world.getGameRules().getBoolean("doDaylightCycle"))); // Add support for per player time
+            }
+        } // CraftBukkit end
 
         Integer[] ids = net.minecraftforge.common.DimensionManager.getIDs(this.tickCounter % 200 == 0);
         for (int x = 0; x < ids.length; x++)
