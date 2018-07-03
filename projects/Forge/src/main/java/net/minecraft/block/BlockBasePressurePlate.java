@@ -128,7 +128,7 @@ public abstract class BlockBasePressurePlate extends Block
         org.bukkit.World bworld = worldIn.getWorld();
         org.bukkit.plugin.PluginManager manager = worldIn.getServer().getPluginManager();
         if (flag != flag1) {
-            org.bukkit.event.block.BlockRedstoneEvent eventRedstone = new org.bukkit.event.block.BlockRedstoneEvent(bworld.getBlockAt(pos.getX(), pos.getY(), pos.getZ()), i, j);
+            org.bukkit.event.block.BlockRedstoneEvent eventRedstone = new org.bukkit.event.block.BlockRedstoneEvent(bworld.getBlockAt(pos.getX(), pos.getY(), pos.getZ()), oldRedstoneStrength, i);
             manager.callEvent(eventRedstone);
             flag1 = eventRedstone.getNewCurrent() > 0;
             i = eventRedstone.getNewCurrent();

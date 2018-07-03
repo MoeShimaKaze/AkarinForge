@@ -149,20 +149,58 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
     private long currentTime = getCurrentTimeMillis();
     @SideOnly(Side.CLIENT)
     private boolean worldIconSet;
+    // CraftBukkit start
+    public List<WorldServer> worlds = new java.util.ArrayList<WorldServer>();
+    public org.bukkit.craftbukkit.CraftServer server;
+    public joptsimple.OptionSet options;
+    public org.bukkit.command.ConsoleCommandSender console;
+    public org.bukkit.command.RemoteConsoleCommandSender remoteConsole;
+    public jline.console.ConsoleReader reader;
+    public static int currentTick = (int) (System.currentTimeMillis() / 50);
+    public final Thread primaryThread;
+    public java.util.Queue<Runnable> processQueue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
+    public int autosavePeriod;
+    // CraftBukkit end
 
-    public MinecraftServer(File anvilFileIn, Proxy proxyIn, DataFixer dataFixerIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn)
+    public MinecraftServer(joptsimple.OptionSet options, Proxy proxyIn, DataFixer dataFixerIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn)
     {
         this.serverProxy = proxyIn;
         this.authService = authServiceIn;
         this.sessionService = sessionServiceIn;
         this.profileRepo = profileRepoIn;
         this.profileCache = profileCacheIn;
-        this.anvilFile = anvilFileIn;
+        // this.anvilFile = anvilFileIn; // CraftBukkit
         this.networkSystem = new NetworkSystem(this);
         this.commandManager = this.createCommandManager();
-        this.anvilConverterForAnvilFile = new AnvilSaveConverter(anvilFileIn, dataFixerIn);
+        // this.anvilConverterForAnvilFile = new AnvilSaveConverter(anvilFileIn, dataFixerIn); // CraftBukkit
         this.dataFixer = dataFixerIn;
+        // CraftBukkit start
+        this.options = options;
+        // Try to see if we're actually running in a terminal, disable jline if not
+        if (System.console() == null && System.getProperty("jline.terminal") == null) {
+            System.setProperty("jline.terminal", "jline.UnsupportedTerminal");
+            org.bukkit.craftbukkit.Main.useJline = false;
+        }
+        try {
+            reader = new jline.console.ConsoleReader(System.in, System.out);
+            reader.setExpandEvents(false); // Avoid parsing exceptions for uncommonly used event designators
+        } catch (Throwable e) {
+            try {
+                // Try again with jline disabled for Windows users without C++ 2008 Redistributable
+                System.setProperty("jline.terminal", "jline.UnsupportedTerminal");
+                System.setProperty("user.language", "en");
+                org.bukkit.craftbukkit.Main.useJline = false;
+                reader = new jline.console.ConsoleReader(System.in, System.out);
+                reader.setExpandEvents(false);
+            } catch (IOException ex) {
+                LOGGER.warn((String) null, ex);
+            }
+        }
+        Runtime.getRuntime().addShutdownHook(new org.bukkit.craftbukkit.util.ServerShutdownThread(this));
+        this.serverThread = primaryThread = new Thread(this, "Server thread");
+        // CraftBukkit end
     }
+    public abstract net.minecraft.server.dedicated.PropertyManager getPropertyManager(); // CraftBukkit
 
     public ServerCommandManager createCommandManager()
     {
@@ -283,7 +321,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
             }
             else
             {
-                this.worlds[i] = (WorldServer)(new WorldServerMulti(this, isavehandler, j, this.worlds[0], this.profiler)).init();
+                // this.worlds[i] = (WorldServer)(new WorldServerMulti(this, isavehandler, j, this.worlds[0], this.profiler)).init(); // Akarin Forge
             }
 
             this.worlds[i].addEventListener(new ServerWorldEventHandler(this, this.worlds[i]));
@@ -299,14 +337,26 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
         overWorld.initialize(worldsettings);
         for (int dim : net.minecraftforge.common.DimensionManager.getStaticDimensionIDs())
         {
-            WorldServer world = (dim == 0 ? overWorld : (WorldServer)new WorldServerMulti(this, isavehandler, dim, overWorld, profiler).init());
+            // CraftBukkit start
+            boolean vanilla = dim == -1 || dim == 0 || dim == 1;
+            org.bukkit.World.Environment env = org.bukkit.World.Environment.getEnvironment(net.minecraftforge.common.DimensionManager.getProviderType(dim).getId());
+            String worldType = env.toString().toLowerCase();
+            String name = (dim == 0) ? saveName : vanilla ? saveName + "_" + worldType : "DIM" + dim;
+            org.bukkit.generator.ChunkGenerator gen = this.server.getGenerator(name);
+            // CraftBukkit end
+            WorldServer world = (dim == 0 ? overWorld : (WorldServer)new WorldServerMulti(this, isavehandler, dim, overWorld, profiler, env, gen).init()); // CraftBukkit
             world.addEventListener(new ServerWorldEventHandler(this, world));
 
             if (!this.isSinglePlayer())
             {
                 world.getWorldInfo().setGameType(this.getGameType());
             }
+            this.server.getPluginManager().callEvent(new org.bukkit.event.world.WorldInitEvent(world.getWorld())); // CraftBukkit
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.world.WorldEvent.Load(world));
+            // CraftBukkit start
+            worlds.add(world);
+            getPlayerList().setPlayerFileData(worlds);
+            // CraftBukkit end
         }
 
         this.playerList.setPlayerManager(new WorldServer[]{ overWorld });

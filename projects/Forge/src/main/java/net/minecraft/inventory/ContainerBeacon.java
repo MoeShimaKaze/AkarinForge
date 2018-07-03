@@ -80,7 +80,7 @@ public class ContainerBeacon extends Container
     @Override public org.bukkit.craftbukkit.inventory.CraftInventoryView getBukkitView() {
         if (bukkitEntity != null) return bukkitEntity;
         org.bukkit.craftbukkit.inventory.CraftInventory inventory = new org.bukkit.craftbukkit.inventory.CraftInventoryBeacon((net.minecraft.tileentity.TileEntityBeacon) this.tileBeacon); // TODO - check this
-        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView(this.player.player.getBukkitEntity(), inventory, this);
+        bukkitEntity = new org.bukkit.craftbukkit.inventory.CraftInventoryView(this.inventoryPlayer.player.getBukkitEntity(), inventory, this);
         return bukkitEntity;
     } // CraftBukkit end
 

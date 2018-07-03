@@ -1403,7 +1403,7 @@ public abstract class EntityLiving extends EntityLivingBase
             }
             else
             {
-                this.world.getServer().getPluginManager().callEvent(new EntityUnleashEvent(this.getBukkitEntity(), UnleashReason.UNKNOWN)); // CraftBukkit
+                this.world.getServer().getPluginManager().callEvent(new org.bukkit.event.entity.EntityUnleashEvent(this.getBukkitEntity(), org.bukkit.event.entity.EntityUnleashEvent.UnleashReason.UNKNOWN)); // CraftBukkit
                 this.clearLeashed(false, true);
             }
         }

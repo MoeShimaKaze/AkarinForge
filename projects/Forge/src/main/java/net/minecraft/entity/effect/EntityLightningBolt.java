@@ -24,7 +24,7 @@ public class EntityLightningBolt extends EntityWeatherEffect
     public EntityLightningBolt(World worldIn, double x, double y, double z, boolean effectOnlyIn)
     {
         super(worldIn);
-        this.isEffect = flag; // CraftBukkit
+        this.isEffect = effectOnlyIn; // CraftBukkit
         this.setLocationAndAngles(x, y, z, 0.0F, 0.0F);
         this.lightningState = 2;
         this.boltVertex = this.rand.nextLong();
@@ -49,7 +49,7 @@ public class EntityLightningBolt extends EntityWeatherEffect
                 if (worldIn.getBlockState(blockpos1).getMaterial() == Material.AIR && Blocks.FIRE.canPlaceBlockAt(worldIn, blockpos1))
                 {
                     // CraftBukkit start
-                    if (!CraftEventFactory.callBlockIgniteEvent(world, blockpos1.getX(), blockpos1.getY(), blockpos1.getZ(), this).isCancelled()) {
+                    if (!org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(world, blockpos1.getX(), blockpos1.getY(), blockpos1.getZ(), this).isCancelled()) {
                         world.setBlockState(blockpos1, Blocks.FIRE.getDefaultState());
                     } // CraftBukkit end
                 }

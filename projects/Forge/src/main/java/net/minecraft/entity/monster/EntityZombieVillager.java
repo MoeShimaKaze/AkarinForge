@@ -151,7 +151,7 @@ public class EntityZombieVillager extends EntityZombie
         }
     }
 
-    protected boolean canDespawn()
+    public boolean canDespawn() // Akarin Forge - public
     {
         return !this.isConverting();
     }

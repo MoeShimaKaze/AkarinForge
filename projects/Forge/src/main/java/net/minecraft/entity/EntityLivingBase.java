@@ -88,7 +88,7 @@ public abstract class EntityLivingBase extends Entity
     private static final DataParameter<Boolean> HIDE_PARTICLES = EntityDataManager.<Boolean>createKey(EntityLivingBase.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Integer> ARROW_COUNT_IN_ENTITY = EntityDataManager.<Integer>createKey(EntityLivingBase.class, DataSerializers.VARINT);
     private AbstractAttributeMap attributeMap;
-    protected final CombatTracker _combatTracker = new CombatTracker(this); // Akarin Forge - protected
+    protected CombatTracker _combatTracker = new CombatTracker(this); // Akarin Forge
     private final Map<Potion, PotionEffect> activePotionsMap = Maps.<Potion, PotionEffect>newHashMap();
     private final NonNullList<ItemStack> handInventory = NonNullList.<ItemStack>withSize(2, ItemStack.EMPTY);
     private final NonNullList<ItemStack> armorArray = NonNullList.<ItemStack>withSize(4, ItemStack.EMPTY);
@@ -156,7 +156,7 @@ public abstract class EntityLivingBase extends Entity
     public int expToDrop;
     public int maxAirTicks = 300;
     public boolean forceDrops; // Akarin Forge - public
-    java.util.ArrayList<org.bukkit.inventory.ItemStack> drops = new java.util.ArrayList<org.bukkit.inventory.ItemStack>();
+    protected java.util.ArrayList<org.bukkit.inventory.ItemStack> drops = new java.util.ArrayList<org.bukkit.inventory.ItemStack>(); // Akarin Forge - protected
     public org.bukkit.craftbukkit.attribute.CraftAttributeMap craftAttributes;
     public boolean collides = true;
     public boolean canPickUpLoot;
@@ -1832,7 +1832,7 @@ public abstract class EntityLivingBase extends Entity
         if (this.attributeMap == null)
         {
             this.attributeMap = new AttributeMap();
-            this.craftAttributes = new CraftAttributeMap(attributeMap); // CraftBukkit
+            this.craftAttributes = new org.bukkit.craftbukkit.attribute.CraftAttributeMap(attributeMap); // CraftBukkit
         }
 
         return this.attributeMap;

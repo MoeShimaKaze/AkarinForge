@@ -314,12 +314,13 @@ public class EntityPlayerSP extends AbstractClientPlayer
         this.connection.sendPacket(new CPacketClientStatus(CPacketClientStatus.State.PERFORM_RESPAWN));
     }
 
-    protected void damageEntity(DamageSource damageSrc, float damageAmount)
+    protected boolean damageEntity(DamageSource damageSrc, float damageAmount) // Akarin Forge
     {
         if (!this.isEntityInvulnerable(damageSrc))
         {
             this.setHealth(this.getHealth() - damageAmount);
         }
+        return true; // Akarin Forge
     }
 
     public void closeScreen()

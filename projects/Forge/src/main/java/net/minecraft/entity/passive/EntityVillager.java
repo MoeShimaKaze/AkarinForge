@@ -397,7 +397,7 @@ public class EntityVillager extends EntityAgeable implements INpc, IMerchant
         this.setAdditionalAItasks();
     }
 
-    protected boolean canDespawn()
+    public boolean canDespawn() // Akarin Forge - public
     {
         return false;
     }

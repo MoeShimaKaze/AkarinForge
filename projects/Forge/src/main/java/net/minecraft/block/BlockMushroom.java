@@ -2,6 +2,7 @@ package net.minecraft.block;
 
 import java.util.Random;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.renderer.BlockModelRenderer.Orientation;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -114,12 +115,12 @@ public class BlockMushroom extends BlockBush implements IGrowable
 
         if (this == Blocks.BROWN_MUSHROOM)
         {
-            BlockSapling.treeType = TreeType.BROWN_MUSHROOM; // CraftBukkit
+            BlockSapling.treeType = org.bukkit.TreeType.BROWN_MUSHROOM; // CraftBukkit
             worldgenerator = new WorldGenBigMushroom(Blocks.BROWN_MUSHROOM_BLOCK);
         }
         else if (this == Blocks.RED_MUSHROOM)
         {
-            BlockSapling.treeType = TreeType.RED_MUSHROOM; // CraftBukkit
+            BlockSapling.treeType = org.bukkit.TreeType.RED_MUSHROOM; // CraftBukkit
             worldgenerator = new WorldGenBigMushroom(Blocks.RED_MUSHROOM_BLOCK);
         }
 

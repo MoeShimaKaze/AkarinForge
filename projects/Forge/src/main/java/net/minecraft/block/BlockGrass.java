@@ -73,8 +73,7 @@ public class BlockGrass extends Block implements IGrowable
                             org.bukkit.World bworld = worldIn.getWorld();
                             org.bukkit.block.BlockState blockState = bworld.getBlockAt(blockpos.getX(), blockpos.getY(), blockpos.getZ()).getState();
                             blockState.setType(org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(Blocks.GRASS));
-
-                            org.bukkit.event.block.BlockSpreadEvent event = new org.bukkit.event.block.BlockSpreadEvent(blockState.getBlock(), bworld.getBlockAt(pos.getX(), posn.getY(), pos.getZ()), blockState);
+                            org.bukkit.event.block.BlockSpreadEvent event = new org.bukkit.event.block.BlockSpreadEvent(blockState.getBlock(), bworld.getBlockAt(pos.getX(), pos.getY(), pos.getZ()), blockState);
                             worldIn.getServer().getPluginManager().callEvent(event);
                             if (!event.isCancelled()) blockState.update(true);
                             // CraftBukkit end

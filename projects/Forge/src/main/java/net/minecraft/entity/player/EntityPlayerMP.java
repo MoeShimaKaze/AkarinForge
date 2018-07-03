@@ -238,7 +238,7 @@ public class EntityPlayerMP extends EntityPlayer implements IContainerListener
         {
             this.recipeBook.read(compound.getCompoundTag("recipeBook"));
         }
-        this.getBukkitEntity().readExtraData(nbttagcompound); // CraftBukkit
+        this.getBukkitEntity().readExtraData(compound); // CraftBukkit
     }
 
     public static void registerFixesPlayerMP(DataFixer p_191522_0_)

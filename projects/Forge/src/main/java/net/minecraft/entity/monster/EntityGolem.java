@@ -41,7 +41,7 @@ public abstract class EntityGolem extends EntityCreature implements IAnimals
         return 120;
     }
 
-    protected boolean canDespawn()
+    public boolean canDespawn() // Akarin Forge - public
     {
         return false;
     }

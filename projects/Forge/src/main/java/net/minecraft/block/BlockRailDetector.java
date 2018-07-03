@@ -103,7 +103,7 @@ public class BlockRailDetector extends BlockRailBase
         }
         // CraftBukkit start
         if (flag != flag1) {
-            org.bukkit.block.Block block = world.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+            org.bukkit.block.Block block = worldIn.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());
             org.bukkit.event.block.BlockRedstoneEvent eventRedstone = new org.bukkit.event.block.BlockRedstoneEvent(block, flag ? 15 : 0, flag1 ? 15 : 0);
             worldIn.getServer().getPluginManager().callEvent(eventRedstone);
             flag1 = eventRedstone.getNewCurrent() > 0;

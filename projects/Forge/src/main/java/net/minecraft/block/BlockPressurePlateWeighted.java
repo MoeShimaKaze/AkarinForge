@@ -42,7 +42,7 @@ public class BlockPressurePlateWeighted extends BlockBasePressurePlate
             if (entity instanceof EntityPlayer) {
                 cancellable = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerInteractEvent((EntityPlayer) entity, org.bukkit.event.block.Action.PHYSICAL, pos, null, null, null);
             } else {
-                cancellable = new org.bukkit.event.entity.EntityInteractEvent(entity.getBukkitEntity(), world.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()));
+                cancellable = new org.bukkit.event.entity.EntityInteractEvent(entity.getBukkitEntity(), worldIn.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()));
                 worldIn.getServer().getPluginManager().callEvent((org.bukkit.event.entity.EntityInteractEvent) cancellable);
             }
             if (!cancellable.isCancelled()) i++; // We only want to block turning the plate on if all events are cancelled

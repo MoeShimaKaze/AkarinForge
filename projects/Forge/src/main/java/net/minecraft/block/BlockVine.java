@@ -270,12 +270,12 @@ public class BlockVine extends Block implements net.minecraftforge.common.IShear
                             }
                             else if (flag1 && worldIn.isAirBlock(blockpos) && this.canAttachTo(worldIn, blockpos, enumfacing1))
                             {
-                                bukkitBlock = world.getWorld().getBlockAt(blockpos.getX(), blockpos.getY(), blockpos.getZ()); // CraftBukkit
+                                bukkitBlock = worldIn.getWorld().getBlockAt(blockpos.getX(), blockpos.getY(), blockpos.getZ()); // CraftBukkit
                                 org.bukkit.craftbukkit.event.CraftEventFactory.handleBlockSpreadEvent(bukkitBlock, source, this, getMetaFromState(this.getDefaultState().withProperty(getPropertyFor(enumfacing1.getOpposite()), Boolean.valueOf(true)))); // CraftBukkit
                             }
                             else if (flag2 && worldIn.isAirBlock(blockpos1) && this.canAttachTo(worldIn, blockpos1, enumfacing1))
                             {
-                                bukkitBlock = world.getWorld().getBlockAt(blockpos1.getX(), blockpos1.getY(), blockpos1.getZ()); // CraftBukkit
+                                bukkitBlock = worldIn.getWorld().getBlockAt(blockpos1.getX(), blockpos1.getY(), blockpos1.getZ()); // CraftBukkit
                                 org.bukkit.craftbukkit.event.CraftEventFactory.handleBlockSpreadEvent(bukkitBlock, source, this, getMetaFromState(this.getDefaultState().withProperty(getPropertyFor(enumfacing1.getOpposite()), Boolean.valueOf(true)))); // CraftBukkit
                             }
                         }

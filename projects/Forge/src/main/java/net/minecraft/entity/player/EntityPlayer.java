@@ -2337,7 +2337,7 @@ public abstract class EntityPlayer extends EntityLivingBase
         this.setRightShoulderEntity(new NBTTagCompound());
     }
 
-    private boolean spawnEntityFromShoulder(@Nullable NBTTagCompound nbttagcompound) { spawnShoulderEntity(nbttagcompound); } // Akarin Forge
+    private boolean spawnEntityFromShoulder(@Nullable NBTTagCompound nbttagcompound) { return spawnShoulderEntity(nbttagcompound); } // Akarin Forge
     private boolean spawnShoulderEntity(@Nullable NBTTagCompound p_192026_1_) // CraftBukkit void -> boolean
     {
         if (!this.world.isRemote && !p_192026_1_.hasNoTags())

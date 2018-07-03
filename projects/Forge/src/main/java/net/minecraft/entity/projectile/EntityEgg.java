@@ -85,7 +85,7 @@ public class EntityEgg extends EntityThrowable
                         if (entity.getBukkitEntity() instanceof org.bukkit.entity.Ageable) {
                             ((org.bukkit.entity.Ageable) entity.getBukkitEntity()).setBaby();
                         }
-                        world.getWorld().addEntity(entity, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.EGG);
+                        world.getWorld().spawnEntity(entity, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.EGG);
                     }
                 } // CraftBukkit end
             }

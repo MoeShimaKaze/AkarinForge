@@ -15,7 +15,7 @@ public class WorldServerMulti extends WorldServer
 
     public WorldServerMulti(MinecraftServer server, ISaveHandler saveHandlerIn, int dimensionId, WorldServer delegate, Profiler profilerIn, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen) // CraftBukkit
     {
-        super(server, saveHandlerIn, new DerivedWorldInfo(delegate.getWorldInfo()), dimensionId, profilerIn);
+        super(server, saveHandlerIn, new DerivedWorldInfo(delegate.getWorldInfo()), dimensionId, profilerIn, env, gen); // CraftBukkit
         this.delegate = delegate;
         /* CraftBukkit start
         this.borderListener = new IBorderListener()
