@@ -43,6 +43,26 @@ public class TileEntityFurnace extends TileEntityLockable implements ITickable, 
     private int cookTime;
     private int totalCookTime;
     private String furnaceCustomName;
+    // CraftBukkit start - add fields and methods
+    private int lastTick = net.minecraft.server.MinecraftServer.currentTick;
+    private int maxStack = MAX_STACK;
+    public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<org.bukkit.entity.HumanEntity>();
+
+    public java.util.List<ItemStack> getContents() {
+        return this.furnaceItemStacks;
+    }
+    public void onOpen(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.add(who);
+    }
+    public void onClose(org.bukkit.craftbukkit.entity.CraftHumanEntity who) {
+        transaction.remove(who);
+    }
+    public java.util.List<org.bukkit.entity.HumanEntity> getViewers() {
+        return transaction;
+    }
+    public void setMaxStackSize(int size) {
+        maxStack = size;
+    } // CraftBukkit end
 
     public int getSizeInventory()
     {
@@ -168,10 +188,23 @@ public class TileEntityFurnace extends TileEntityLockable implements ITickable, 
     {
         boolean flag = this.isBurning();
         boolean flag1 = false;
+        // CraftBukkit start - Use wall time instead of ticks for cooking
+        int elapsedTicks = net.minecraft.server.MinecraftServer.currentTick - this.lastTick;
+        this.lastTick = net.minecraft.server.MinecraftServer.currentTick;
+        if (this.isBurning() && this.canSmelt()) {
+            this.cookTime += elapsedTicks;
+            if (this.cookTime >= this.totalCookTime) {
+                this.cookTime = 0;
+                this.totalCookTime = this.getCookTime((ItemStack) this.furnaceItemStacks.get(0));
+                this.smeltItem();
+                flag1 = true;
+            }
+        } else this.cookTime = 0;
+        // CraftBukkit end
 
         if (this.isBurning())
         {
-            --this.furnaceBurnTime;
+            this.furnaceBurnTime -= elapsedTicks; // CraftBukkit - use elapsedTicks in place of constant
         }
 
         if (!this.world.isRemote)
@@ -180,12 +213,23 @@ public class TileEntityFurnace extends TileEntityLockable implements ITickable, 
 
             if (this.isBurning() || !itemstack.isEmpty() && !((ItemStack)this.furnaceItemStacks.get(0)).isEmpty())
             {
+                // CraftBukkit start - Handle multiple elapsed ticks
+                if (this.furnaceBurnTime <= 0 && this.canSmelt()) { // CraftBukkit - == to <=
+                    org.bukkit.craftbukkit.inventory.CraftItemStack fuel = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemstack);
+                    org.bukkit.event.inventory.FurnaceBurnEvent furnaceBurnEvent = new org.bukkit.event.inventory.FurnaceBurnEvent(this.world.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()), fuel, getItemBurnTime(itemstack));
+                    this.world.getServer().getPluginManager().callEvent(furnaceBurnEvent);
+                    if (furnaceBurnEvent.isCancelled()) return;
+                    this.currentItemBurnTime = furnaceBurnEvent.getBurnTime();
+                    this.furnaceBurnTime += this.currentItemBurnTime;
+                    if (this.furnaceBurnTime > 0 && furnaceBurnEvent.isBurning())
+                /*
                 if (!this.isBurning() && this.canSmelt())
                 {
                     this.furnaceBurnTime = getItemBurnTime(itemstack);
                     this.currentItemBurnTime = this.furnaceBurnTime;
 
                     if (this.isBurning())
+                    */ // CraftBukkit end
                     {
                         flag1 = true;
 
@@ -203,6 +247,7 @@ public class TileEntityFurnace extends TileEntityLockable implements ITickable, 
                     }
                 }
 
+                /* // CraftBukkit start
                 if (this.isBurning() && this.canSmelt())
                 {
                     ++this.cookTime;
@@ -219,6 +264,7 @@ public class TileEntityFurnace extends TileEntityLockable implements ITickable, 
                 {
                     this.cookTime = 0;
                 }
+                */ // CraftBukkit end
             }
             else if (!this.isBurning() && this.cookTime > 0)
             {
@@ -229,6 +275,7 @@ public class TileEntityFurnace extends TileEntityLockable implements ITickable, 
             {
                 flag1 = true;
                 BlockFurnace.setState(this.isBurning(), this.world, this.pos);
+                this.updateContainingBlockInfo(); // CraftBukkit - Invalidate tile entity's cached block type 
             }
         }
 
@@ -288,7 +335,22 @@ public class TileEntityFurnace extends TileEntityLockable implements ITickable, 
             ItemStack itemstack = this.furnaceItemStacks.get(0);
             ItemStack itemstack1 = FurnaceRecipes.instance().getSmeltingResult(itemstack);
             ItemStack itemstack2 = this.furnaceItemStacks.get(2);
-
+            // CraftBukkit start - fire FurnaceSmeltEvent
+            org.bukkit.craftbukkit.inventory.CraftItemStack source = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemstack);
+            org.bukkit.inventory.ItemStack result = org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(itemstack1);
+            org.bukkit.event.inventory.FurnaceSmeltEvent furnaceSmeltEvent = new org.bukkit.event.inventory.FurnaceSmeltEvent(this.world.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()), source, result);
+            this.world.getServer().getPluginManager().callEvent(furnaceSmeltEvent);
+            if (furnaceSmeltEvent.isCancelled()) return;
+            result = furnaceSmeltEvent.getResult();
+            itemstack1 = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(result);
+            if (!itemstack1.isEmpty()) {
+                if (itemstack2.isEmpty()) {
+                    this.furnaceItemStacks.set(2, itemstack1.copy());
+                } else if (org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemstack2).isSimilar(result)) {
+                    itemstack2.grow(itemstack1.getCount());
+                } else return;
+            }
+            /*
             if (itemstack2.isEmpty())
             {
                 this.furnaceItemStacks.set(2, itemstack1.copy());
@@ -297,6 +359,7 @@ public class TileEntityFurnace extends TileEntityLockable implements ITickable, 
             {
                 itemstack2.grow(itemstack1.getCount());
             }
+            */ // CraftBukkit end
 
             if (itemstack.getItem() == Item.getItemFromBlock(Blocks.SPONGE) && itemstack.getMetadata() == 1 && !((ItemStack)this.furnaceItemStacks.get(1)).isEmpty() && ((ItemStack)this.furnaceItemStacks.get(1)).getItem() == Items.BUCKET)
             {

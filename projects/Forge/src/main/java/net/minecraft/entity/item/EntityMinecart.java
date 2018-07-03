@@ -72,6 +72,34 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
     protected float maxSpeedAirLateral = defaultMaxSpeedAirLateral;
     protected float maxSpeedAirVertical = defaultMaxSpeedAirVertical;
     protected double dragAir = defaultDragAir;
+    // CraftBukkit start
+    public boolean slowWhenEmpty = true;
+    private double derailedX = 0.5;
+    private double derailedY = 0.5;
+    private double derailedZ = 0.5;
+    private double flyingX = defaultDragAir;
+    private double flyingY = defaultDragAir;
+    private double flyingZ = defaultDragAir;
+    public double maxSpeed = 0.4D;
+
+    public org.bukkit.util.Vector getFlyingVelocityMod() {
+        return new org.bukkit.util.Vector(flyingX, flyingY, flyingZ);
+    }
+    public void setFlyingVelocityMod(org.bukkit.util.Vector flying) {
+        flyingX = flying.getX();
+        flyingY = flying.getY();
+        flyingZ = flying.getZ();
+        dragAir = (flyingX + flyingY + flyingZ) / 3; // Akarin Forge - respect Forge
+    }
+    public org.bukkit.util.Vector getDerailedVelocityMod() {
+        return new org.bukkit.util.Vector(derailedX, derailedY, derailedZ);
+    }
+    public void setDerailedVelocityMod(org.bukkit.util.Vector derailed) {
+        derailedX = derailed.getX();
+        derailedY = derailed.getY();
+        derailedZ = derailed.getZ();
+    }
+    // CraftBukkit end
 
     public EntityMinecart(World worldIn)
     {
@@ -162,6 +190,14 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
             }
             else
             {
+                // CraftBukkit start - fire VehicleDamageEvent
+                org.bukkit.entity.Vehicle vehicle = (org.bukkit.entity.Vehicle) this.getBukkitEntity();
+                org.bukkit.entity.Entity passenger = (source.getTrueSource() == null) ? null : source.getTrueSource().getBukkitEntity();
+                org.bukkit.event.vehicle.VehicleDamageEvent event = new org.bukkit.event.vehicle.VehicleDamageEvent(vehicle, passenger, amount);
+                this.world.getServer().getPluginManager().callEvent(event);
+                if (event.isCancelled()) return true;
+                amount = (float) event.getDamage();
+                // CraftBukkit end
                 this.setRollingDirection(-this.getRollingDirection());
                 this.setRollingAmplitude(10);
                 this.markVelocityChanged();
@@ -170,6 +206,13 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
 
                 if (flag || this.getDamage() > 40.0F)
                 {
+                    // CraftBukkit start
+                    org.bukkit.event.vehicle.VehicleDestroyEvent destroyEvent = new org.bukkit.event.vehicle.VehicleDestroyEvent(vehicle, passenger);
+                    this.world.getServer().getPluginManager().callEvent(destroyEvent);
+                    if (destroyEvent.isCancelled()) {
+                        this.setDamage(40); // Maximize damage so this doesn't get triggered again right away
+                        return true;
+                    } // CraftBukkit end
                     this.removePassengers();
 
                     if (flag && !this.hasCustomName())
@@ -228,6 +271,13 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
 
     public void onUpdate()
     {
+        // CraftBukkit start
+        double prevX = this.posX;
+        double prevY = this.posY;
+        double prevZ = this.posZ;
+        float prevYaw = this.rotationYaw;
+        float prevPitch = this.rotationPitch;
+        // CraftBukkit end
         if (this.getRollingAmplitude() > 0)
         {
             this.setRollingAmplitude(this.getRollingAmplitude() - 1);
@@ -243,6 +293,7 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
             this.outOfWorld();
         }
 
+        /* // CraftBukkit start
         if (!this.world.isRemote && this.world instanceof WorldServer)
         {
             this.world.profiler.startSection("portal");
@@ -294,6 +345,7 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
 
             this.world.profiler.endSection();
         }
+        */ // CraftBukkit end
 
         if (this.world.isRemote)
         {
@@ -376,6 +428,14 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
             }
 
             this.setRotation(this.rotationYaw, this.rotationPitch);
+            // CraftBukkit start
+            org.bukkit.World bworld = this.world.getWorld();
+            org.bukkit.Location from = new org.bukkit.Location(bworld, prevX, prevY, prevZ, prevYaw, prevPitch);
+            org.bukkit.Location to = new org.bukkit.Location(bworld, this.posX, this.posY, this.posZ, this.rotationYaw, this.rotationPitch);
+            org.bukkit.entity.Vehicle vehicle = (org.bukkit.entity.Vehicle) this.getBukkitEntity();
+            this.world.getServer().getPluginManager().callEvent(new org.bukkit.event.vehicle.VehicleUpdateEvent(vehicle));
+            if (!from.equals(to)) this.world.getServer().getPluginManager().callEvent(new org.bukkit.event.vehicle.VehicleMoveEvent(vehicle, from, to));
+            // CraftBukkit end
 
             AxisAlignedBB box;
             if (getCollisionHandler() != null) box = getCollisionHandler().getMinecartCollisionBox(this);
@@ -393,10 +453,20 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
 
                         if (!(entity1 instanceof EntityPlayer) && !(entity1 instanceof EntityIronGolem) && !(entity1 instanceof EntityMinecart) && !this.isBeingRidden() && !entity1.isRiding())
                         {
+                            // CraftBukkit start
+                            org.bukkit.event.vehicle.VehicleEntityCollisionEvent collisionEvent = new org.bukkit.event.vehicle.VehicleEntityCollisionEvent(vehicle, entity1.getBukkitEntity());
+                            this.world.getServer().getPluginManager().callEvent(collisionEvent);
+                            if (collisionEvent.isCancelled()) continue;
+                            // CraftBukkit end
                             entity1.startRiding(this);
                         }
                         else
                         {
+                            // CraftBukkit start
+                            org.bukkit.event.vehicle.VehicleEntityCollisionEvent collisionEvent = new org.bukkit.event.vehicle.VehicleEntityCollisionEvent(vehicle, entity1.getBukkitEntity());
+                            this.world.getServer().getPluginManager().callEvent(collisionEvent);
+                            if (collisionEvent.isCancelled()) continue;
+                            // CraftBukkit end
                             entity1.applyEntityCollision(this);
                         }
                     }
@@ -408,6 +478,11 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
                 {
                     if (!this.isPassenger(entity) && entity.canBePushed() && entity instanceof EntityMinecart)
                     {
+                        // CraftBukkit start
+                        org.bukkit.event.vehicle.VehicleEntityCollisionEvent collisionEvent = new org.bukkit.event.vehicle.VehicleEntityCollisionEvent(vehicle, entity.getBukkitEntity());
+                        this.world.getServer().getPluginManager().callEvent(collisionEvent);
+                        if (collisionEvent.isCancelled()) continue;
+                        // CraftBukkit end
                         entity.applyEntityCollision(this);
                     }
                 }
@@ -420,7 +495,7 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
 
     protected double getMaximumSpeed()
     {
-        return 0.4D;
+        return this.maxSpeed; // CraftBukkit
     }
 
     public void onActivatorRailPass(int x, int y, int z, boolean receivingPower)
@@ -446,18 +521,22 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
 
         if (this.onGround)
         {
-            this.motionX *= 0.5D;
-            this.motionY *= 0.5D;
-            this.motionZ *= 0.5D;
+            // CraftBukkit start - replace magic numbers with our variables
+            this.motionX *= this.derailedX;
+            this.motionY *= this.derailedY;
+            this.motionZ *= this.derailedZ;
+            // CraftBukkit end
         }
 
         this.move(MoverType.SELF, this.motionX, moveY, this.motionZ);
 
         if (!this.onGround)
         {
-            this.motionX *= getDragAir();
-            this.motionY *= getDragAir();
-            this.motionZ *= getDragAir();
+            // CraftBukkit start - replace magic numbers with our variables
+            this.motionX *= this.flyingX;
+            this.motionY *= this.flyingY;
+            this.motionZ *= this.flyingZ;
+            // CraftBukkit end
         }
     }
 
@@ -668,7 +747,7 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
 
     protected void applyDrag()
     {
-        if (this.isBeingRidden())
+        if (this.isBeingRidden() || !this.slowWhenEmpty) // CraftBukkit - add !this.slowWhenEmpty
         {
             this.motionX *= 0.996999979019165D;
             this.motionY *= 0.0D;
@@ -868,6 +947,11 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
             {
                 if (!this.isPassenger(entityIn))
                 {
+                    // CraftBukkit start
+                    org.bukkit.event.vehicle.VehicleEntityCollisionEvent collisionEvent = new org.bukkit.event.vehicle.VehicleEntityCollisionEvent((org.bukkit.entity.Vehicle) this.getBukkitEntity(), entityIn.getBukkitEntity());
+                    this.world.getServer().getPluginManager().callEvent(collisionEvent);
+                    if (collisionEvent.isCancelled()) return;
+                    // CraftBukkit end
                     double d0 = entityIn.posX - this.posX;
                     double d1 = entityIn.posZ - this.posZ;
                     double d2 = d0 * d0 + d1 * d1;
@@ -1260,6 +1344,11 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable
     public void setDragAir(double value)
     {
         dragAir = value;
+        // Akarin Forge - respect Forge
+        flyingX = value;
+        flyingY = value;
+        flyingZ = value;
+        // Akarin Forge end
     }
 
     public double getSlopeAdjustment()
