@@ -28,6 +28,14 @@ import net.minecraft.network.play.server.SPacketTitle.Type;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.NotImplementedException;
+import org.bukkit.Achievement;
+import org.bukkit.Effect;
+import org.bukkit.Instrument;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
+import org.bukkit.Statistic;
 import org.bukkit.Statistic.Type;
 import org.bukkit.configuration.serialization.DelegateDeserialization;
 import org.bukkit.conversations.Conversation;

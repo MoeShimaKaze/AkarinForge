@@ -48,7 +48,7 @@ public class SaveHandler implements ISaveHandler, IPlayerFileData
             DataInputStream dis = null;
             try {
                 dis = new DataInputStream(new FileInputStream(file1));
-                return uuid = new UUID(dis.readLong(), dis.readLong());
+                return uuid = new java.util.UUID(dis.readLong(), dis.readLong());
             } catch (IOException ex) {
                 LOGGER.warn("Failed to read " + file1 + ", generating new random UUID", ex);
             } finally {

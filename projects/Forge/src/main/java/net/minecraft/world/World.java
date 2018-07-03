@@ -108,10 +108,10 @@ public abstract class World implements IBlockAccess, net.minecraftforge.common.c
     protected FunctionManager functionManager;
     public final Profiler profiler;
     private final Calendar calendar;
-    protected Scoreboard worldScoreboard;
+    public Scoreboard worldScoreboard; // Akarin Forge - public
     public final boolean isRemote;
-    protected boolean spawnHostileMobs;
-    protected boolean spawnPeacefulMobs;
+    public boolean spawnHostileMobs; // Akarin Forge - public
+    public boolean spawnPeacefulMobs; // Akarin Forge - public
     private boolean processingLoadedTiles;
     private final WorldBorder worldBorder;
     int[] lightUpdateBlockList;

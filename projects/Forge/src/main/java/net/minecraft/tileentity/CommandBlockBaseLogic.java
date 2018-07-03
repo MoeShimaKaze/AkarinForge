@@ -256,11 +256,11 @@ public abstract class CommandBlockBaseLogic implements ICommandSender
         // Find positions of command block syntax, if any        
         net.minecraft.world.WorldServer[] prev = net.minecraft.server.MinecraftServer.getServer().worlds;
         MinecraftServer server = net.minecraft.server.MinecraftServer.getServer();
-        server.worlds = new net.minecraft.world.WorldServer[server.worlds.size()];
+        server.worlds = new net.minecraft.world.WorldServer[server.bworlds.size()];
         server.worlds[0] = (net.minecraft.world.WorldServer) sender.getEntityWorld();
         int bpos = 0;
         for (int pos = 1; pos < server.worlds.length; pos++) {
-            net.minecraft.world.WorldServer world = server.worlds.get(bpos++);
+            net.minecraft.world.WorldServer world = server.bworlds.get(bpos++);
             if (server.worlds[0] == world) {
                 pos--;
                 continue;
@@ -305,7 +305,7 @@ public abstract class CommandBlockBaseLogic implements ICommandSender
         return completed;
     }
     private static java.util.ArrayList<String[]> buildCommands(ICommandSender sender, String[] args, int pos) throws net.minecraft.command.CommandException {
-        java.util.ArrayList<String[]> commands = new ArrayList<String[]>();
+        java.util.ArrayList<String[]> commands = new java.util.ArrayList<String[]>();
         java.util.List<net.minecraft.entity.player.EntityPlayerMP> players = (java.util.List<net.minecraft.entity.player.EntityPlayerMP>)net.minecraft.command.EntitySelector.matchEntities(sender, args[pos], net.minecraft.entity.player.EntityPlayerMP.class);
         if (players != null) {
             for (net.minecraft.entity.player.EntityPlayerMP player : players) {

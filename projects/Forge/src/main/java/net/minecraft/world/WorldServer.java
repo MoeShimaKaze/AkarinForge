@@ -86,7 +86,7 @@ public class WorldServer extends World implements IThreadListener
 {
     private static final Logger LOGGER = LogManager.getLogger();
     private final MinecraftServer mcServer;
-    private final EntityTracker entityTracker;
+    public final EntityTracker entityTracker; // Akarin Forge - public
     private final PlayerChunkMap playerChunkMap;
     private final Set<NextTickListEntry> pendingTickListEntriesHashSet = Sets.<NextTickListEntry>newHashSet();
     private final TreeSet<NextTickListEntry> pendingTickListEntriesTreeSet = new TreeSet<NextTickListEntry>();
@@ -346,7 +346,7 @@ public class WorldServer extends World implements IThreadListener
         this.worldInfo.setSpawnZ(j);
     }
 
-    protected boolean isChunkLoaded(int x, int z, boolean allowEmpty)
+    public boolean isChunkLoaded(int x, int z, boolean allowEmpty) // Akarin Forge - public
     {
         return this.getChunkProvider().chunkExists(x, z);
     }

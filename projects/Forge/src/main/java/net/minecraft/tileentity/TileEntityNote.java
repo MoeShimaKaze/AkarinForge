@@ -94,7 +94,7 @@ public class TileEntityNote extends TileEntity
             }
 
             // CraftBukkit start
-            org.bukkit.event.block.NotePlayEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callNotePlayEvent(this.world, posIn.getX(), posIn.getY(), posIn.getZ(), i, this.note);
+            org.bukkit.event.block.NotePlayEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callNotePlayEvent(this.world, posIn.getX(), posIn.getY(), posIn.getZ(), (byte) i, this.note);
             if (!event.isCancelled()) {
                 world.addBlockEvent(posIn, Blocks.NOTEBLOCK, event.getInstrument().getType(), event.getNote().getId());
             }

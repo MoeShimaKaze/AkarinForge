@@ -52,7 +52,7 @@ public abstract class EntityArrow extends Entity implements IProjectile
     public int zTile; // CraftBukkit - private -> public
     private Block inTile;
     private int inData;
-    protected boolean inGround;
+    public boolean inGround; // Akarin Forge - public
     protected int timeInGround;
     public EntityArrow.PickupStatus pickupStatus;
     public int arrowShake;
@@ -60,7 +60,7 @@ public abstract class EntityArrow extends Entity implements IProjectile
     private int ticksInGround;
     private int ticksInAir;
     private double damage;
-    private int knockbackStrength;
+    public int knockbackStrength; // Akarin Forge - public
 
     public EntityArrow(World worldIn)
     {

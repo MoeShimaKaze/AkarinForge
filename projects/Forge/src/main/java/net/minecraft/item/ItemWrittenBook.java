@@ -128,7 +128,7 @@ public class ItemWrittenBook extends Item
                         server.worlds[0] = (net.minecraft.world.WorldServer) player.getEntityWorld();
                         int bpos = 0;
                         for (int pos = 1; pos < server.worlds.length; pos++) {
-                            net.minecraft.world.WorldServer world = server.worlds.get(bpos++);
+                            net.minecraft.world.WorldServer world = server.bworlds.get(bpos++);
                             if (server.worlds[0] == world) {
                                 pos--; continue;
                             }

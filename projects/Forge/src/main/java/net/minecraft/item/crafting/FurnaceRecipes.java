@@ -15,7 +15,7 @@ import net.minecraft.item.ItemStack;
 public class FurnaceRecipes
 {
     private static final FurnaceRecipes SMELTING_BASE = new FurnaceRecipes();
-    private final Map<ItemStack, ItemStack> smeltingList = Maps.<ItemStack, ItemStack>newHashMap();
+    public final Map<ItemStack, ItemStack> smeltingList = Maps.<ItemStack, ItemStack>newHashMap(); // Akarin Forge - public
     private final Map<ItemStack, Float> experienceList = Maps.<ItemStack, Float>newHashMap();
     // CraftBukkit start - add method
     public Map<ItemStack,ItemStack> customRecipes = Maps.newHashMap();
@@ -30,7 +30,7 @@ public class FurnaceRecipes
         return SMELTING_BASE;
     }
 
-    private FurnaceRecipes()
+    public FurnaceRecipes() // Akarin Forge - public
     {
         this.addSmeltingRecipeForBlock(Blocks.IRON_ORE, new ItemStack(Items.IRON_INGOT), 0.7F);
         this.addSmeltingRecipeForBlock(Blocks.GOLD_ORE, new ItemStack(Items.GOLD_INGOT), 1.0F);

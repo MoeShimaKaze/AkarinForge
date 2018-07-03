@@ -12,7 +12,6 @@ import org.bukkit.scoreboard.Team;
 import com.google.common.collect.ImmutableSet;
 
 import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.scoreboard.Team;
 import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 

@@ -11,7 +11,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class CooldownTracker
 {
-    private final Map<Item, CooldownTracker.Cooldown> cooldowns = Maps.<Item, CooldownTracker.Cooldown>newHashMap();
+    public final Map<Item, CooldownTracker.Cooldown> cooldowns = Maps.<Item, CooldownTracker.Cooldown>newHashMap(); // Akarin Forge - public
     private int ticks;
 
     public boolean hasCooldown(Item itemIn)

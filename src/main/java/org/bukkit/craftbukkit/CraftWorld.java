@@ -32,10 +32,14 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.craftbukkit.block.CraftBlockState;
+import org.bukkit.craftbukkit.entity.CraftItem;
+import org.bukkit.craftbukkit.entity.CraftLightningStrike;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.metadata.BlockMetadataStore;
 import org.bukkit.craftbukkit.potion.CraftPotionUtil;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
+import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.CommandMinecart;
 import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.entity.minecart.HopperMinecart;
@@ -171,7 +175,6 @@ import net.minecraft.world.WorldProviderEnd;
 import net.minecraft.world.WorldProviderHell;
 import net.minecraft.world.WorldProviderSurface;
 import net.minecraft.world.WorldServer;
-import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraft.world.gen.feature.WorldGenBigMushroom;
 import net.minecraft.world.gen.feature.WorldGenBigTree;
@@ -278,7 +281,7 @@ public class CraftWorld implements World {
         org.bukkit.Chunk[] craftChunks = new CraftChunk[chunks.length];
 
         for (int i = 0; i < chunks.length; i++) {
-            minecraft.world.chunk.Chunk chunk = (minecraft.world.chunk.Chunk) chunks[i];
+            net.minecraft.world.chunk.Chunk chunk = (net.minecraft.world.chunk.Chunk) chunks[i];
             craftChunks[i] = chunk.bukkitChunk;
         }
 
@@ -310,7 +313,7 @@ public class CraftWorld implements World {
             return false;
         }
 
-        minecraft.world.chunk.Chunk chunk = world.getChunkProvider().getLoadedChunk(x, z);
+        net.minecraft.world.chunk.Chunk chunk = world.getChunkProvider().getLoadedChunk(x, z);
         if (chunk != null) {
             world.getChunkProvider().queueUnload(chunk);
         }
@@ -327,7 +330,7 @@ public class CraftWorld implements World {
     }
 
     private boolean unloadChunk0(int x, int z, boolean save) {
-        minecraft.world.chunk.Chunk chunk = world.getChunkProvider().getChunkIfLoaded(x, z);
+        net.minecraft.world.chunk.Chunk chunk = world.getChunkProvider().getChunkIfLoaded(x, z);
         if (chunk == null) {
             return true;
         }
@@ -344,7 +347,7 @@ public class CraftWorld implements World {
         final long chunkKey = ChunkPos.asLong(x, z);
         world.getChunkProvider().droppedChunksSet.remove(chunkKey);
 
-        minecraft.world.chunk.Chunk chunk = null;
+        net.minecraft.world.chunk.Chunk chunk = null;
 
         chunk = world.getChunkProvider().chunkGenerator.generateChunk(x, z);
         PlayerChunkMapEntry playerChunk = world.getPlayerChunkMap().getEntry(x, z);
@@ -581,12 +584,12 @@ public class CraftWorld implements World {
                 int y = blockstate.getY();
                 int z = blockstate.getZ();
                 BlockPos position = new BlockPos(x, y, z);
-                minecraft.block.state.IBlockState oldBlock = world.getBlockState(position);
+                net.minecraft.block.state.IBlockState oldBlock = world.getBlockState(position);
                 int typeId = blockstate.getTypeId();
                 int data = blockstate.getRawData();
                 int flag = ((CraftBlockState)blockstate).getFlag();
                 delegate.setTypeIdAndData(x, y, z, typeId, data);
-                minecraft.block.state.IBlockState newBlock = world.getBlockState(position);
+                net.minecraft.block.state.IBlockState newBlock = world.getBlockState(position);
                 world.notifyAndUpdatePhysics(position, null, oldBlock, newBlock, flag);
             }
             world.capturedBlockStates.clear();
@@ -1011,7 +1014,7 @@ public class CraftWorld implements World {
         EntityFallingBlock entity = new EntityFallingBlock(world, location.getX(), location.getY(), location.getZ(), CraftMagicNumbers.getBlock(material).getStateFromMeta(data));
         entity.fallTime = 1;
 
-        world.spawnEntity(entity, SpawnReason.CUSTOM);
+        world.addEntity(entity, SpawnReason.CUSTOM);
         return (FallingBlock) entity.getBukkitEntity();
     }
 
@@ -1341,7 +1344,7 @@ public class CraftWorld implements World {
             function.accept((T) entity.getBukkitEntity());
         }
 
-        world.spawnEntity(entity, reason);
+        world.addEntity(entity, reason);
         return (T) entity.getBukkitEntity();
     }
 
@@ -1676,7 +1679,7 @@ public class CraftWorld implements World {
         }
 
         ChunkProviderServer cps = world.getChunkProvider();
-        for (minecraft.world.chunk.Chunk chunk : cps.id2ChunkMap.values()) {
+        for (net.minecraft.world.chunk.Chunk chunk : cps.id2ChunkMap.values()) {
             // If in use, skip it
             if (isChunkInUse(chunk.x, chunk.z)) {
                 continue;

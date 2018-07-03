@@ -123,9 +123,9 @@ public abstract class EntityPlayer extends EntityLivingBase
     public double chasingPosX;
     public double chasingPosY;
     public double chasingPosZ;
-    protected boolean sleeping;
+    public boolean sleeping; // Akarin Forge - public
     public BlockPos bedLocation;
-    private int sleepTimer;
+    public int sleepTimer; // Akarin Forge - public
     public float renderOffsetX;
     @SideOnly(Side.CLIENT)
     public float renderOffsetY;
@@ -2589,7 +2589,7 @@ public abstract class EntityPlayer extends EntityLivingBase
         return (NBTTagCompound)this.dataManager.get(LEFT_SHOULDER_ENTITY);
     }
 
-    protected void setLeftShoulderEntity(NBTTagCompound tag)
+    public void setLeftShoulderEntity(NBTTagCompound tag) // Akarin Forge - public
     {
         this.dataManager.set(LEFT_SHOULDER_ENTITY, tag);
     }
@@ -2599,7 +2599,7 @@ public abstract class EntityPlayer extends EntityLivingBase
         return (NBTTagCompound)this.dataManager.get(RIGHT_SHOULDER_ENTITY);
     }
 
-    protected void setRightShoulderEntity(NBTTagCompound tag)
+    public void setRightShoulderEntity(NBTTagCompound tag) // Akarin Forge - public
     {
         this.dataManager.set(RIGHT_SHOULDER_ENTITY, tag);
     }

@@ -6,12 +6,11 @@ import net.minecraft.entity.passive.AbstractHorse;
 import org.apache.commons.lang.Validate;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.inventory.CraftInventoryAbstractHorse;
-import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
 import org.bukkit.inventory.AbstractHorseInventory;
 
-public abstract class CraftAbstractHorse extends CraftAnimals implements AbstractHorse {
+public abstract class CraftAbstractHorse extends CraftAnimals implements org.bukkit.entity.AbstractHorse {
 
     public CraftAbstractHorse(CraftServer server, AbstractHorse entity) {
         super(server, entity);

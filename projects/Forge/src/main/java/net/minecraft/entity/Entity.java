@@ -111,7 +111,7 @@ public abstract class Entity implements ICommandSender, net.minecraftforge.commo
     private static int nextEntityID;
     private int entityId;
     public boolean preventEntitySpawning;
-    private final List<Entity> riddenByEntities;
+    public final List<Entity> riddenByEntities; // Akarin Forge - public
     protected int rideCooldown;
     private Entity ridingEntity;
     public boolean forceSpawn;
@@ -154,7 +154,7 @@ public abstract class Entity implements ICommandSender, net.minecraftforge.commo
     public float entityCollisionReduction;
     protected Random rand;
     public int ticksExisted;
-    protected int fire; // Akarin Forge - protected
+    public int fire; // Akarin Forge - public
     protected boolean inWater;
     public int hurtResistantTime;
     protected boolean firstUpdate;
@@ -189,7 +189,7 @@ public abstract class Entity implements ICommandSender, net.minecraftforge.commo
     protected UUID entityUniqueID;
     protected String cachedUniqueIdString;
     private final CommandResultStats cmdResultStats;
-    protected boolean glowing;
+    public boolean glowing; // Akarin Forge - public
     private final Set<String> tags;
     private boolean isPositionDirty;
     private final double[] pistonDeltas;
@@ -2045,7 +2045,8 @@ public abstract class Entity implements ICommandSender, net.minecraftforge.commo
     }
 
     @Nullable
-    protected final String getEntityString()
+    public // Akarin Forge - public
+    final String getEntityString()
     {
         ResourceLocation resourcelocation = EntityList.getKey(this);
         return resourcelocation == null ? null : resourcelocation.toString();
@@ -2517,12 +2518,12 @@ public abstract class Entity implements ICommandSender, net.minecraftforge.commo
         this.setFlag(5, invisible);
     }
 
-    protected boolean getFlag(int flag)
+    public boolean getFlag(int flag) // Akarin Forge - public
     {
         return (((Byte)this.dataManager.get(FLAGS)).byteValue() & 1 << flag) != 0;
     }
 
-    protected void setFlag(int flag, boolean set)
+    public void setFlag(int flag, boolean set) // Akarin Forge - public
     {
         byte b0 = ((Byte)this.dataManager.get(FLAGS)).byteValue();
 
@@ -3570,7 +3571,7 @@ public abstract class Entity implements ICommandSender, net.minecraftforge.commo
         return SoundCategory.NEUTRAL;
     }
 
-    protected int getFireImmuneTicks()
+    public int getFireImmuneTicks() // Akarin Forge - public
     {
         return 1;
     }

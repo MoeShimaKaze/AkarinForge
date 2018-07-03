@@ -70,7 +70,6 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionData;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.util.BlockIterator;
@@ -251,11 +250,11 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
         return getHandle().attackingPlayer == null ? null : (Player) getHandle().attackingPlayer.getBukkitEntity();
     }
 
-    public boolean addPotionEffect(PotionEffect effect) {
+    public boolean addPotionEffect(org.bukkit.potion.PotionEffect effect) {
         return addPotionEffect(effect, false);
     }
 
-    public boolean addPotionEffect(PotionEffect effect, boolean force) {
+    public boolean addPotionEffect(org.bukkit.potion.PotionEffect effect, boolean force) {
         if (hasPotionEffect(effect.getType())) {
             if (!force) {
                 return false;
@@ -266,9 +265,9 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
         return true;
     }
 
-    public boolean addPotionEffects(Collection<PotionEffect> effects) {
+    public boolean addPotionEffects(Collection<org.bukkit.potion.PotionEffect> effects) {
         boolean success = true;
-        for (PotionEffect effect : effects) {
+        for (org.bukkit.potion.PotionEffect effect : effects) {
             success &= addPotionEffect(effect);
         }
         return success;
@@ -279,19 +278,19 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     }
 
     @Override
-    public PotionEffect getPotionEffect(PotionEffectType type) {
+    public org.bukkit.potion.PotionEffect getPotionEffect(PotionEffectType type) {
         PotionEffect handle = getHandle().getActivePotionEffect(Potion.getPotionById(type.getId()));
-        return (handle == null) ? null : new PotionEffect(PotionEffectType.getById(Potion.getIdFromPotion(handle.getPotion())), handle.getDuration(), handle.getAmplifier(), handle.getIsAmbient(), handle.doesShowParticles());
+        return (handle == null) ? null : new org.bukkit.potion.PotionEffect(PotionEffectType.getById(Potion.getIdFromPotion(handle.getPotion())), handle.getDuration(), handle.getAmplifier(), handle.getIsAmbient(), handle.doesShowParticles());
     }
 
     public void removePotionEffect(PotionEffectType type) {
         getHandle().removePotionEffect(Potion.getPotionById(type.getId()));
     }
 
-    public Collection<PotionEffect> getActivePotionEffects() {
-        List<PotionEffect> effects = new ArrayList<PotionEffect>();
+    public Collection<org.bukkit.potion.PotionEffect> getActivePotionEffects() {
+        List<org.bukkit.potion.PotionEffect> effects = new ArrayList<org.bukkit.potion.PotionEffect>();
         for (PotionEffect handle : getHandle().activePotionsMap.values()) {
-            effects.add(new PotionEffect(PotionEffectType.getById(Potion.getIdFromPotion(handle.getPotion())), handle.getDuration(), handle.getAmplifier(), handle.getIsAmbient(), handle.doesShowParticles()));
+            effects.add(new org.bukkit.potion.PotionEffect(PotionEffectType.getById(Potion.getIdFromPotion(handle.getPotion())), handle.getDuration(), handle.getAmplifier(), handle.getIsAmbient(), handle.doesShowParticles()));
         }
         return effects;
     }

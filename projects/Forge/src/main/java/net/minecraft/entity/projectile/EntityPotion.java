@@ -274,7 +274,7 @@ public class EntityPotion extends EntityThrowable
         // CraftBukkit end
     }
 
-    private boolean isLingering()
+    public boolean isLingering() // Akarin Forge - public
     {
         return this.getPotion().getItem() == Items.LINGERING_POTION;
     }

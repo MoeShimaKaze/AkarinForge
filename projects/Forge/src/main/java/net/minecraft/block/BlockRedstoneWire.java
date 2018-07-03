@@ -325,7 +325,7 @@ public class BlockRedstoneWire extends Block
         }
     }
 
-    private int getMaxCurrentStrength(World worldIn, BlockPos pos, int strength)
+    public int getMaxCurrentStrength(World worldIn, BlockPos pos, int strength) // Akarin Forge - public
     {
         if (worldIn.getBlockState(pos).getBlock() != this)
         {

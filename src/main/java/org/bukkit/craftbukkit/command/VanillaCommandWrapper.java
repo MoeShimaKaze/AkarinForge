@@ -27,6 +27,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecartCommandBlock;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.tileentity.CommandBlockBaseLogic;
 import net.minecraft.util.math.BlockPos;
@@ -77,11 +78,11 @@ public final class VanillaCommandWrapper extends BukkitCommand {
         // so we must temporarily populate it with the world of the commandsender
         WorldServer[] prev = MinecraftServer.getServer().worldServer;
         MinecraftServer server = MinecraftServer.getServer();
-        server.worlds = new WorldServer[server.worlds.size()];
+        server.worlds = new WorldServer[server.bworlds.size()];
         server.worlds[0] = (WorldServer) icommandlistener.getEntityWorld();
         int bpos = 0;
         for (int pos = 1; pos < server.worlds.length; pos++) {
-            WorldServer world = server.worlds.get(bpos++);
+            WorldServer world = server.bworlds.get(bpos++);
             if (server.worlds[0] == world) {
                 pos--;
                 continue;

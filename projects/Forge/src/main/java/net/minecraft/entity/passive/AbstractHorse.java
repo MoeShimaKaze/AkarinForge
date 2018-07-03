@@ -75,7 +75,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
     public int tailCounter;
     public int sprintCounter;
     protected boolean horseJumping;
-    protected ContainerHorseChest horseChest;
+    public ContainerHorseChest horseChest; // Akarin Forge - public
     protected int temper;
     protected float jumpPower;
     private boolean allowStandSliding;
@@ -289,7 +289,7 @@ public abstract class AbstractHorse extends EntityAnimal implements IInventoryCh
         return 2;
     }
 
-    protected void initHorseChest()
+    public void initHorseChest() // Akarin Forge - public
     {
         ContainerHorseChest containerhorsechest = this.horseChest;
         this.horseChest = new ContainerHorseChest("HorseChest", this.getInventorySize(), this); // CraftBukkit

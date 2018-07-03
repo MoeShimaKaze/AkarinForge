@@ -444,7 +444,7 @@ public class PreYggdrasilConverter
                         if (root != null) {
                             if (!root.hasKey("bukkit")) root.setTag("bukkit", new net.minecraft.nbt.NBTTagCompound());
                             net.minecraft.nbt.NBTTagCompound data = root.getCompoundTag("bukkit");
-                            data.setString("lastKnownName", s);
+                            data.setString("lastKnownName", p_152743_2_);
                             try {
                                 net.minecraft.nbt.CompressedStreamTools.writeCompressed(root, new java.io.FileOutputStream(file2));
                             } catch (Exception exception) {

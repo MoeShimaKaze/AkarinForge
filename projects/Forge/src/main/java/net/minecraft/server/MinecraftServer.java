@@ -90,18 +90,18 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class MinecraftServer implements ICommandSender, Runnable, IThreadListener, ISnooperInfo
 {
-    private static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger(); // Akarin Forge - public
     public static final File USER_CACHE_FILE = new File("usercache.json");
     private final ISaveFormat anvilConverterForAnvilFile;
     private final Snooper usageSnooper = new Snooper("server", this, getCurrentTimeMillis());
-    private final File anvilFile;
+    public final File anvilFile; // Akarin Forge - public
     private final List<ITickable> tickables = Lists.<ITickable>newArrayList();
     public final ICommandManager commandManager;
     public final Profiler profiler = new Profiler();
     private final NetworkSystem networkSystem;
     private final ServerStatusResponse statusResponse = new ServerStatusResponse();
     private final Random random = new Random();
-    private final DataFixer dataFixer;
+    public final DataFixer dataFixer; // Akarin Forge - public
     @SideOnly(Side.SERVER)
     private String hostname;
     private int serverPort = -1;
@@ -150,7 +150,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
     @SideOnly(Side.CLIENT)
     private boolean worldIconSet;
     // CraftBukkit start
-    public List<WorldServer> worlds = new java.util.ArrayList<WorldServer>();
+    public List<WorldServer> bworlds = new java.util.ArrayList<WorldServer>();
     public org.bukkit.craftbukkit.CraftServer server;
     public joptsimple.OptionSet options;
     public org.bukkit.command.ConsoleCommandSender console;
@@ -354,8 +354,8 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
             this.server.getPluginManager().callEvent(new org.bukkit.event.world.WorldInitEvent(world.getWorld())); // CraftBukkit
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.world.WorldEvent.Load(world));
             // CraftBukkit start
-            worlds.add(world);
-            getPlayerList().setPlayerFileData(worlds);
+            bworlds.add(world);
+            getPlayerList().setPlayerFileData(bworlds.toArray(new WorldServer[bworlds.size()]));
             // CraftBukkit end
         }
 

@@ -67,12 +67,12 @@ public class EntityArmorStand extends EntityLivingBase
     public long punchCooldown;
     private int disabledSlots;
     private boolean wasMarker;
-    private Rotations headRotation;
-    private Rotations bodyRotation;
-    private Rotations leftArmRotation;
-    private Rotations rightArmRotation;
-    private Rotations leftLegRotation;
-    private Rotations rightLegRotation;
+    public Rotations headRotation; // Akarin Forge - public
+    public Rotations bodyRotation; // Akarin Forge - public
+    public Rotations leftArmRotation; // Akarin Forge - public
+    public Rotations rightArmRotation; // Akarin Forge - public
+    public Rotations leftLegRotation; // Akarin Forge - public
+    public Rotations rightLegRotation; // Akarin Forge - public
     // CraftBukkit start - SPIGOT-3607, SPIGOT-3637
     @Override public float getBukkitYaw() {
         return this.rotationYaw;
@@ -822,7 +822,7 @@ public class EntityArmorStand extends EntityLivingBase
         return this.hasMarker() ? EnumPushReaction.IGNORE : super.getPushReaction();
     }
 
-    private void setSmall(boolean small)
+    public void setSmall(boolean small) // Akarin Forge - public
     {
         this.dataManager.set(STATUS, Byte.valueOf(this.setBit(((Byte)this.dataManager.get(STATUS)).byteValue(), 1, small)));
         this.setSize(0.5F, 1.975F);
@@ -833,7 +833,7 @@ public class EntityArmorStand extends EntityLivingBase
         return (((Byte)this.dataManager.get(STATUS)).byteValue() & 1) != 0;
     }
 
-    private void setShowArms(boolean showArms)
+    public void setShowArms(boolean showArms) // Akarin Forge - public
     {
         this.dataManager.set(STATUS, Byte.valueOf(this.setBit(((Byte)this.dataManager.get(STATUS)).byteValue(), 4, showArms)));
     }
@@ -843,7 +843,7 @@ public class EntityArmorStand extends EntityLivingBase
         return (((Byte)this.dataManager.get(STATUS)).byteValue() & 4) != 0;
     }
 
-    private void setNoBasePlate(boolean noBasePlate)
+    public void setNoBasePlate(boolean noBasePlate) // Akarin Forge - public
     {
         this.dataManager.set(STATUS, Byte.valueOf(this.setBit(((Byte)this.dataManager.get(STATUS)).byteValue(), 8, noBasePlate)));
     }

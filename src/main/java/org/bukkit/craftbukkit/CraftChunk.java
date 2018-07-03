@@ -21,7 +21,7 @@ import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public class CraftChunk implements Chunk {
-    private WeakReference<minecraft.world.chunk.Chunk> weakChunk;
+    private WeakReference<net.minecraft.world.chunk.Chunk> weakChunk;
     private final WorldServer worldServer;
     private final int x;
     private final int z;
@@ -29,8 +29,8 @@ public class CraftChunk implements Chunk {
     private static final short[] emptyBlockIDs = new short[4096];
     private static final byte[] emptySkyLight = new byte[2048];
 
-    public CraftChunk(minecraft.world.chunk.Chunk chunk) {
-        this.weakChunk = new WeakReference<minecraft.world.chunk.Chunk>(chunk);
+    public CraftChunk(net.minecraft.world.chunk.Chunk chunk) {
+        this.weakChunk = new WeakReference<net.minecraft.world.chunk.Chunk>(chunk);
 
         worldServer = (WorldServer) getHandle().world;
         x = getHandle().x;
@@ -46,13 +46,13 @@ public class CraftChunk implements Chunk {
         return (CraftWorld) getWorld();
     }
 
-    public minecraft.world.chunk.Chunk getHandle() {
-        minecraft.world.chunk.Chunk c = weakChunk.get();
+    public net.minecraft.world.chunk.Chunk getHandle() {
+        net.minecraft.world.chunk.Chunk c = weakChunk.get();
 
         if (c == null) {
             c = worldServer.getChunkFromChunkCoords(x, z);
 
-            weakChunk = new WeakReference<minecraft.world.chunk.Chunk>(c);
+            weakChunk = new WeakReference<net.minecraft.world.chunk.Chunk>(c);
         }
 
         return c;
@@ -81,7 +81,7 @@ public class CraftChunk implements Chunk {
 
     public Entity[] getEntities() {
         int count = 0, index = 0;
-        minecraft.world.chunk.Chunk chunk = getHandle();
+        net.minecraft.world.chunk.Chunk chunk = getHandle();
 
         for (int i = 0; i < 16; i++) {
             count += chunk.entityLists[i].size();
@@ -105,7 +105,7 @@ public class CraftChunk implements Chunk {
 
     public BlockState[] getTileEntities() {
         int index = 0;
-        minecraft.world.chunk.Chunk chunk = getHandle();
+        net.minecraft.world.chunk.Chunk chunk = getHandle();
 
         BlockState[] entities = new BlockState[chunk.tileEntities.size()];
 
@@ -156,7 +156,7 @@ public class CraftChunk implements Chunk {
     }
 
     public ChunkSnapshot getChunkSnapshot(boolean includeMaxBlockY, boolean includeBiome, boolean includeBiomeTempRain) {
-        minecraft.world.chunk.Chunk chunk = getHandle();
+        net.minecraft.world.chunk.Chunk chunk = getHandle();
 
         ExtendedBlockStorage[] cs = chunk.getBlockStorageArray();
         short[][] sectionBlockIDs = new short[cs.length][];

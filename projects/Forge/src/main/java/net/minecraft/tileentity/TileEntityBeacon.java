@@ -49,9 +49,9 @@ public class TileEntityBeacon extends TileEntityLockable implements ITickable, I
     private boolean isComplete;
     private int levels = -1;
     @Nullable
-    private Potion primaryEffect;
+    public Potion primaryEffect; // Akarin Forge - public
     @Nullable
-    private Potion secondaryEffect;
+    public Potion secondaryEffect; // Akarin Forge - public
     private ItemStack payment = ItemStack.EMPTY;
     private String customName;
     // CraftBukkit start - add fields and methods

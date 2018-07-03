@@ -9,7 +9,6 @@ import net.minecraft.scoreboard.Score;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
 
 /**
  * TL;DR: This class is special and lazily grabs a handle...
@@ -17,7 +16,7 @@ import org.bukkit.scoreboard.Score;
  * <p>
  * Also, as an added perk, a CraftScore will (intentionally) stay a valid reference so long as objective is valid.
  */
-final class CraftScore implements Score {
+final class CraftScore implements org.bukkit.scoreboard.Score {
     private final String entry;
     private final CraftObjective objective;
 

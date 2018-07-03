@@ -22,7 +22,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public abstract class MobSpawnerBaseLogic
 {
-    private int spawnDelay = 20;
+    public int spawnDelay = 20; // Akarin Forge - public
     private final List<WeightedSpawnerEntity> potentialSpawns = Lists.<WeightedSpawnerEntity>newArrayList();
     private WeightedSpawnerEntity spawnData = new WeightedSpawnerEntity();
     private double mobRotation;
@@ -36,7 +36,7 @@ public abstract class MobSpawnerBaseLogic
     public int spawnRange = 4; // CraftBukkit private -> public
 
     @Nullable
-    private ResourceLocation getEntityId()
+    public ResourceLocation getEntityId() // Akarin Forge - public
     {
         String s = this.spawnData.getNbt().getString("id");
         return StringUtils.isNullOrEmpty(s) ? null : new ResourceLocation(s);
@@ -133,7 +133,7 @@ public abstract class MobSpawnerBaseLogic
                             ((EntityLiving)entity).onInitialSpawn(world.getDifficultyForLocation(new BlockPos(entity)), (IEntityLivingData)null);
                         }
 
-                        AnvilChunkLoader.spawnEntity(entity, world, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER); // CraftBukkit
+                        AnvilChunkLoader.addEntity(entity, world, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER); // CraftBukkit
                         world.playEvent(2004, blockpos, 0);
 
                         if (entityliving != null)

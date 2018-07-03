@@ -68,8 +68,8 @@ public abstract class EntityLiving extends EntityLivingBase
     protected EntityJumpHelper jumpHelper;
     private final EntityBodyHelper bodyHelper;
     protected PathNavigate navigator;
-    public final EntityAITasks tasks;
-    public final EntityAITasks targetTasks;
+    public EntityAITasks tasks; // Akarin Forge
+    public EntityAITasks targetTasks; // Akarin Forge
     private EntityLivingBase attackTarget;
     private final EntitySenses senses;
     private final NonNullList<ItemStack> inventoryHands = NonNullList.<ItemStack>withSize(2, ItemStack.EMPTY);

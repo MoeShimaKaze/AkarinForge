@@ -26,7 +26,7 @@ public class EntityTippedArrow extends EntityArrow
 {
     private static final DataParameter<Integer> COLOR = EntityDataManager.<Integer>createKey(EntityTippedArrow.class, DataSerializers.VARINT);
     private PotionType potion = PotionTypes.EMPTY;
-    private final Set<PotionEffect> customPotionEffects = Sets.<PotionEffect>newHashSet();
+    public final Set<PotionEffect> customPotionEffects = Sets.<PotionEffect>newHashSet(); // Akarin Forge - public
     private boolean fixedColor;
     // CraftBukkit start accessor methods
     public void refreshEffects() {

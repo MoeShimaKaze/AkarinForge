@@ -132,6 +132,7 @@ import org.bukkit.event.server.TabCompleteEvent;
 
 
 import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandSenderWrapper;
 import net.minecraft.command.ICommand;
@@ -144,6 +145,7 @@ import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.PendingCommand;
@@ -228,7 +230,7 @@ public final class CraftServer implements Server {
             }
         }));
         this.serverVersion = CraftServer.class.getPackage().getImplementationVersion();
-        online.value = console.getPropertyManager().getBoolean("online-mode", true);
+        online.value = console.getPropertyManager().getBooleanProperty("online-mode", true);
 
         Bukkit.setServer(this);
 
@@ -574,15 +576,15 @@ public final class CraftServer implements Server {
 
     // NOTE: Temporary calls through to server.properies until its replaced
     private String getConfigString(String variable, String defaultValue) {
-        return this.console.getPropertyManager().getString(variable, defaultValue);
+        return this.console.getPropertyManager().getStringProperty(variable, defaultValue);
     }
 
     private int getConfigInt(String variable, int defaultValue) {
-        return this.console.getPropertyManager().getInt(variable, defaultValue);
+        return this.console.getPropertyManager().getIntProperty(variable, defaultValue);
     }
 
     private boolean getConfigBoolean(String variable, boolean defaultValue) {
-        return this.console.getPropertyManager().getBoolean(variable, defaultValue);
+        return this.console.getPropertyManager().getBooleanProperty(variable, defaultValue);
     }
 
     // End Temporary calls
@@ -685,8 +687,8 @@ public final class CraftServer implements Server {
         ((DedicatedServer) console).settings = config;
 
         boolean animals = config.getBooleanProperty("spawn-animals", console.getCanSpawnAnimals());
-        boolean monsters = config.getBooleanProperty("spawn-monsters", console.worlds.get(0).getDifficulty() != EnumDifficulty.PEACEFUL);
-        EnumDifficulty difficulty = EnumDifficulty.getDifficultyEnum(config.getIntProperty("difficulty", console.worlds.get(0).getDifficulty().ordinal()));
+        boolean monsters = config.getBooleanProperty("spawn-monsters", console.bworlds.get(0).getDifficulty() != EnumDifficulty.PEACEFUL);
+        EnumDifficulty difficulty = EnumDifficulty.getDifficultyEnum(config.getIntProperty("difficulty", console.bworlds.get(0).getDifficulty().ordinal()));
 
         online.value = config.getBooleanProperty("online-mode", console.isServerInOnlineMode());
         console.setCanSpawnAnimals(config.getBooleanProperty("spawn-animals", console.getCanSpawnAnimals()));
@@ -894,7 +896,7 @@ public final class CraftServer implements Server {
             });
         }
 
-        int dimension = CraftWorld.CUSTOM_DIMENSION_OFFSET + console.worlds.size();
+        int dimension = CraftWorld.CUSTOM_DIMENSION_OFFSET + console.bworlds.size();
         boolean used = false;
         do {
             for (WorldServer server : console.worlds) {
@@ -931,10 +933,10 @@ public final class CraftServer implements Server {
         internal.addEventListener(new ServerWorldEventHandler(console, internal));
         internal.worldInfo.setDifficulty(EnumDifficulty.EASY);
         internal.setAllowedSpawnTypes(true, true);
-        console.worlds.add(internal);
+        console.bworlds.add(internal);
 
         pluginManager.callEvent(new WorldInitEvent(internal.getWorld()));
-        System.out.println("Preparing start region for level " + (console.worlds.size() - 1) + " (Seed: " + internal.getSeed() + ")");
+        System.out.println("Preparing start region for level " + (console.bworlds.size() - 1) + " (Seed: " + internal.getSeed() + ")");
 
         if (internal.getWorld().getKeepSpawnInMemory()) {
             short short1 = 196;
@@ -977,7 +979,7 @@ public final class CraftServer implements Server {
 
         WorldServer handle = ((CraftWorld) world).getHandle();
 
-        if (!(console.worlds.contains(handle))) {
+        if (!(console.bworlds.contains(handle))) {
             return false;
         }
 
@@ -1006,7 +1008,7 @@ public final class CraftServer implements Server {
         }
 
         worlds.remove(world.getName().toLowerCase(java.util.Locale.ENGLISH));
-        console.worlds.remove(console.worlds.indexOf(handle));
+        console.worlds.remove(console.bworlds.indexOf(handle));
         return true;
     }
 
@@ -1228,7 +1230,7 @@ public final class CraftServer implements Server {
     @Override
     @Deprecated
     public CraftMapView getMap(short id) {
-        MapStorage collection = console.worlds.get(0).worldMaps;
+        MapStorage collection = console.bworlds.get(0).worldMaps;
         MapData worldmap = (MapData) collection.getOrLoadData(MapData.class, "map_" + id);
         if (worldmap == null) {
             return null;
@@ -1401,7 +1403,7 @@ public final class CraftServer implements Server {
 
     @Override
     public GameMode getDefaultGameMode() {
-        return GameMode.getByValue(console.worlds.get(0).getWorldData().getGameType().getId());
+        return GameMode.getByValue(console.bworlds.get(0).getWorldData().getGameType().getId());
     }
 
     @Override
@@ -1445,7 +1447,7 @@ public final class CraftServer implements Server {
 
     @Override
     public OfflinePlayer[] getOfflinePlayers() {
-        SaveHandler storage = (SaveHandler) console.worlds.get(0).getDataManager();
+        SaveHandler storage = (SaveHandler) console.bworlds.get(0).getDataManager();
         String[] files = storage.getPlayerDir().list(new DatFileFilter());
         Set<OfflinePlayer> players = new HashSet<OfflinePlayer>();
 
